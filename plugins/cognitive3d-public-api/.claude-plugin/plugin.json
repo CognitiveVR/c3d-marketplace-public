@@ -1,0 +1,10 @@
+{
+  "name": "cognitive3d-public-api",
+  "description": "Expert guide for the Cognitive3D REST API — constructing requests, suggesting the right endpoints, and parsing responses for XR/VR session analytics.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Calder Archinuk"
+  },
+  "license": "MIT",
+  "keywords": ["cognitive3d", "c3d", "xr", "vr", "analytics", "api", "gaze", "slicer"]
+}

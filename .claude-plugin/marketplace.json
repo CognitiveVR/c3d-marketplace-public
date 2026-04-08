@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "c3d-marketplace-public",
+  "description": "Open-source Claude Code plugins from Cognitive3D — tools and skills for working with the Cognitive3D XR analytics platform",
+  "owner": {
+    "name": "Cognitive3D",
+    "email": "dev@cognitive3d.com"
+  },
+  "plugins": [
+    {
+      "name": "cognitive3d-public-api",
+      "description": "Expert guide for the Cognitive3D (C3D) REST API — constructing requests, suggesting the right endpoints, filtering, and parsing responses.",
+      "source": "./plugins/cognitive3d-public-api",
+      "category": "development"
+    }
+  ]
+}
