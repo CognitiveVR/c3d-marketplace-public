@@ -59,7 +59,20 @@ Table of the operation types and how to use them:
 | CustomGroups             | Yes                       | `groups`               |
 
 ### Slice By's
-An operation essentially produces a single number, but can be sliced into buckets by a slice by or even multiple. Include a json object per slice by you want in an array called `sliceBys`. A slice by has at minimum a [name](#Name). The type of slice by you want will dictate the other fields you have to include. The most common types are date histograms (show me the data over time, eg daily) and discrete field slices (show me the data split by the value of some field).
+An operation essentially produces a single number, but can be sliced into buckets by a slice by or even multiple. Include a json object per slice by you want in an array called `sliceBys`.
+
+**IMPORTANT: `sliceBys` is a sibling to `operations` at the aggregation level, NOT nested inside an operation object.** If you put `sliceBys` inside an operation, it will be silently ignored and you'll get a single aggregated value instead of buckets.
+
+```json
+{
+  "aggregations": [{
+    "name": "main",
+    "sliceBys": [ ... ],    // ✓ CORRECT - sibling to operations
+    "operations": [ ... ]
+  }]
+}
+```
+A slice by has at minimum a [name](#Name). The type of slice by you want will dictate the other fields you have to include. The most common types are date histograms (show me the data over time, eg daily) and discrete field slices (show me the data split by the value of some field).
 
 For a date histogram:
 ```json

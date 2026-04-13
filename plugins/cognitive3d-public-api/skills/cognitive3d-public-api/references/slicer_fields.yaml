@@ -70,6 +70,10 @@ session_fields:
     displayName: Scene Version
     displayTag: Common
     sceneSessionOnly: true
+  hmd:
+    type: textual
+    description: Headset model name, e.g. Meta Quest 3 (recommended you use the property c3d.device.hmd.type instead)
+    computedBy: sdk
   hmdYawHistogram10degrees:
     type: integral
     description: Head rotation histogram data in 10-degree buckets

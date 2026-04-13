@@ -9,6 +9,17 @@ description: >
   construction, or any request mentioning "cognitive3d", "c3d", "c3ddev", or XR/VR analytics
   data retrieval. If someone is exploring what data is available from a VR session analytics
   platform and it looks like C3D, use this skill without waiting to be asked.
+tags:
+  - analytics
+  - data
+  - query
+  - api
+  - xr
+  - vr
+  - gaze
+  - sessions
+  - cognitive3d
+  - c3d
 ---
 
 # Cognitive3D Public API Skill
@@ -40,6 +51,28 @@ Every request needs an `Authorization` header.
 Keys are organization-scoped — one key unlocks all projects, scenes, and sessions in that org.
 The `Authorization` header alone is sufficient for all API calls, including write operations.
 
+### Using a curl config file (recommended)
+
+To avoid exposing API keys in commands, **before making any API calls**, check if a `c3d_curlrc` file exists in the current working directory.
+
+**If `./c3d_curlrc` exists:**
+Use it with all curl commands:
+```bash
+curl --config ./c3d_curlrc https://api.cognitive3d.com/v0/...
+```
+
+**If `./c3d_curlrc` does NOT exist:**
+Instruct the user to create it before proceeding. They should create a file named `c3d_curlrc` in their working directory with the following content:
+
+```
+# Cognitive3D API credentials
+header = "Authorization: orgkey-YOUR_API_KEY_HERE"
+```
+
+This keeps the API key out of command history and console output. If you ask the user for the API key yourself and add it to curl commands the normal way as a header, it will be visible in console output from the user.
+
+Note well that there cannot be decorative presentation content in this file. A tendency for agents giving this instruction is to decorate it with a bar or header text that is not behind a hashbang #. Make sure that any header text OR other text is behind a hashbang when instructing the user of how to construct this file.
+
 ---
 
 ## Key IDs to Know
@@ -53,6 +86,13 @@ Before constructing any request, identify which IDs you're working with:
 | `versionId` | integer | A specific published version of a scene |
 | `sessionId` | SDK string | The ID assigned by the C3D SDK at session creation |
 | `objectId` / `sdkId` | string | Dynamic object identifier — use `sdkId` field (not `id`) in gaze queries |
+
+**Discovering your organization ID:**
+If you don't know your organization or project IDs, call:
+```
+GET /v0/organizations/apiKeys/whoami
+```
+This returns just the organization ID of the API key being used, which you can use to fetch project data as well via the other endpoints.
 
 ---
 
@@ -157,6 +197,8 @@ Response array has `name` (friendly) and `sdkId` (UUID) fields. Match on `name`,
 4. **`sessionType`** — set to `"project"` for project-wide queries, `"scene"` when you have a sceneId
 5. **The slicer filter schema is non-obvious** — nested `fieldParent`/`nestedFieldName`/`path` structure for session properties vs flat `fieldName`/`fieldParent` for built-in fields. See the Slicer Query System section below.
 6. **Never guess property names** — property paths (e.g. `c3d.app.version`, `c3d.session_tag.test`) are not intuitive enough to infer. Before using a property in a query, either look it up in `references/slicer_fields.yaml` or discover it via `POST /v0/datasets/sessions/slicerPropertyNameQueries` (see `references/slicer_api_guide.md`). The built-in field names listed in this file (like `date`, `duration`, `sessionId`) are safe to use directly — it's the property `path` values that must be verified.
+
+7. **Always make HTTP requests sequentially, never in parallel** — When running queries across multiple projects, sessions, or endpoints, execute requests one at a time. Do not fire parallel requests even if asked to query "all projects" or collate data across many resources. This avoids rate limiting and ensures predictable behavior.
 
 ---
 
@@ -265,7 +307,7 @@ Compound filters use `"op": "and"` / `"or"` / `"none"` with a `children` array:
 
 ### Slice-bys (dimensions)
 
-Operations produce a single number by default. Add `sliceBys` to bucket the data.
+Operations produce a single number by default. Add `sliceBys` at the aggregation level (not inside the operation) to bucket the data. See `references/slicer_query_doc.md` for full syntax and examples.
 
 **Date histogram** (data over time):
 ```json
