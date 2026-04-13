@@ -1,0 +1,1188 @@
+# Slicer Field Knowledge Base
+# Authoritative reference for all known fields, properties, and event names
+# usable in slicer queries.
+#
+# Structure:
+#   session_fields     → use fieldParent: "session", fieldName: "<key>"
+#   event_fields       → use fieldParent: "event", fieldName: "<key>"
+#   session_properties → grouped by type (textual/numerical/boolean)
+#                        use nestedFieldName matching the subsection, path: "<key>"
+#   event_properties   → same structure as session_properties
+#   well_known_event_names → common event names for reference
+#
+# For properties, always use nestedFieldName by default. Properties marked
+# with "unnested: true" also support unnestedFieldName, which is faster.
+# If a property is NOT marked unnested, you MUST use nestedFieldName.
+
+# =============================================================================
+# SESSION FIELDS
+# Top-level fields on session documents.
+# Reference: fieldParent: "session", fieldName: "<key>"
+# =============================================================================
+session_fields:
+  date:
+    type: timestamp
+    unit: epoch_ms
+    description: Session start time
+    displayName: Date
+    displayTag: Common
+  duration:
+    type: integral
+    unit: ms
+    description: Total session duration
+    displayName: Duration
+    displayTag: Common
+  participantId:
+    type: textual
+    nullable: true
+    description: User/participant identifier string
+    displayName: Participant ID
+    displayTag: Common
+  sessionId:
+    type: textual
+    description: Unique session identifier
+    displayName: Session ID
+    displayTag: Common
+  projectId:
+    type: integral
+    description: Project this session belongs to
+    displayName: Project ID
+    displayTag: Common
+  organizationId:
+    type: integral
+    description: Organization this session belongs to
+    displayName: Organization ID
+    displayTag: Common
+  userSessionNumber:
+    type: integral
+    description: Nth session for this user (1-indexed)
+    displayName: User Session Number
+    displayTag: Common
+  sceneId:
+    type: textual
+    description: Scene identifier (scene sessions only)
+    displayName: Scene
+    displayTag: Common
+    sceneSessionOnly: true
+  versionId:
+    type: integral
+    description: Scene version identifier (scene sessions only)
+    displayName: Scene Version
+    displayTag: Common
+    sceneSessionOnly: true
+  hmd:
+    type: textual
+    description: Headset model name, e.g. Meta Quest 3 (recommended you use the property c3d.device.hmd.type instead)
+    computedBy: sdk
+  hmdYawHistogram10degrees:
+    type: integral
+    description: Head rotation histogram data in 10-degree buckets
+    displayName: HMD Yaw Histogram
+    displayTag: Common
+  hmdVirtualYawHistogram10degrees:
+    type: integral
+    description: Virtual head rotation histogram data in 10-degree buckets
+    displayName: HMD Virtual Yaw Histogram
+    displayTag: Common
+  # --- Scene session fields (not in slicerOptions2, but queryable) ---
+  hasDynamics:
+    type: boolean
+    description: Whether the session contains dynamic object data
+    displayName: Has Dynamic Objects
+    displayTag: Common
+    sceneSessionOnly: true
+  hasFixations:
+    type: boolean
+    description: Whether the session contains eye fixation data
+    displayName: Has Fixations
+    displayTag: Common
+    sceneSessionOnly: true
+  hasGazes:
+    type: boolean
+    description: Whether the session contains gaze data
+    displayName: Has Gaze
+    displayTag: Common
+    sceneSessionOnly: true
+  hasSensors:
+    type: boolean
+    description: Whether the session contains sensor data
+    displayName: Has Sensors
+    displayTag: Common
+    sceneSessionOnly: true
+  hasEvents:
+    type: boolean
+    description: Whether the session contains event data
+    displayName: Has Events
+    displayTag: Common
+    sceneSessionOnly: true
+  gazeInterval:
+    type: numerical
+    unit: ms
+    description: Interval between gaze data points
+    displayName: Gaze Interval
+    displayTag: Common
+    sceneSessionOnly: true
+
+# =============================================================================
+# EVENT FIELDS
+# Top-level fields on event documents (nested within sessions).
+# Reference: fieldParent: "event", fieldName: "<key>"
+# =============================================================================
+event_fields:
+  eventName:
+    type: textual
+    description: Name of the event
+    displayName: Event Name
+    displayTag: Common
+  date:
+    type: timestamp
+    unit: epoch_ms
+    description: Event timestamp
+    displayName: Date
+    displayTag: Common
+  objectId:
+    type: textual
+    nullable: true
+    description: Dynamic object ID, if the event is associated with one
+    displayName: Object
+    displayTag: Common
+  sessionRelativeDateTotal:
+    type: timestamp
+    unit: ms
+    description: Time elapsed since session start
+    displayName: Time Since Session Start
+    displayTag: Common
+  sessionRelativeDateGapless:
+    type: timestamp
+    unit: ms
+    description: Time elapsed since session start, excluding pauses/gaps
+    displayName: Time Since Session Start (Gapless)
+    displayTag: Common
+  xCoord:
+    type: numerical
+    unit: meters
+    description: Event position X coordinate
+    displayName: X Coordinate
+    displayTag: Common
+  yCoord:
+    type: numerical
+    unit: meters
+    description: Event position Y coordinate
+    displayName: Y Coordinate
+    displayTag: Common
+  zCoord:
+    type: numerical
+    unit: meters
+    description: Event position Z coordinate
+    displayName: Z Coordinate
+    displayTag: Common
+
+# =============================================================================
+# SESSION PROPERTIES — TEXTUAL
+# nestedFieldName: textualSessionProp (or unnestedFieldName: textualSessionProp)
+# =============================================================================
+session_properties:
+  textual:
+    # --- App ---
+    c3d.app.name:
+      description: Application name
+      displayName: Name
+      displayTag: App
+      legacyNames: [cvr.app.name]
+      computedBy: sdk
+    c3d.app.version:
+      unnested: true
+      description: App version
+      computedBy: sdk
+      displayName: Version
+      displayTag: App
+      legacyNames: [cvr.app.version]
+    c3d.app.engine:
+      description: Whether Unity or Unreal was used for building the app
+      computedBy: sdk
+      displayName: Engine
+      displayTag: App
+      legacyNames: [cvr.app.engine]
+    c3d.app.engine.version:
+      description: Game engine version (e.g. Unity 2022.3.13f1)
+      computedBy: sdk
+      displayName: Engine Version
+      displayTag: App
+      legacyNames: [cvr.app.engine.version, cvr.unity.version]
+    c3d.app.sdktype:
+      description: SDK type identifier
+      displayName: SDK Type
+      displayTag: App
+      legacyNames: [cvr.app.sdktype]
+      computedBy: sdk
+    c3d.version:
+      description: Version of Cognitive3D SDK being used
+      computedBy: sdk
+      displayName: Analytics SDK Version
+      displayTag: App
+    c3d.app.xrplugin:
+      description: XR plugin in use
+      displayName: XR Plugin
+      displayTag: App
+      computedBy: sdk
+    c3d.app.oculus.appid:
+      description: Oculus/Meta app ID
+      displayName: Oculus App ID
+      displayTag: App
+      computedBy: sdk
+    c3d.app.plugin.version:
+      description: Cognitive3D plugin version
+      displayName: Plugin Version
+      displayTag: App
+      computedBy: sdk
+    c3d.app.androidPlugin.version:
+      description: Version of the Cognitive3D Android plugin
+      computedBy: sdk
+      displayName: Android Plugin Version
+      displayTag: App
+    c3d.app.androidPlugin.hostName:
+      description: Android plugin host name
+      displayName: Android Plugin Host Name
+      displayTag: App
+      computedBy: sdk
+    c3d.app.androidPlugin.networkHostName:
+      description: Android plugin network host name
+      displayName: Android Plugin Network Host Name
+      displayTag: App
+      computedBy: sdk
+    c3d.app.multiplayer.lobbyId:
+      description: Multiplayer lobby ID (app-level)
+      displayName: Multiplayer Lobby ID
+      displayTag: App
+      computedBy: sdk
+
+    # --- HMD ---
+    c3d.device.hmd.type:
+      description: Headset model name, e.g. Meta Quest 3
+      computedBy: sdk
+      displayName: Headset
+      displayTag: HMD
+    c3d.device.hmd.manufacturer:
+      description: Headset manufacturer (e.g. Meta, HTC)
+      displayName: Manufacturer
+      displayTag: HMD
+      computedBy: sdk
+    c3d.device.eyetracking.type:
+      description: Eye tracking type, e.g. Tobii
+      computedBy: sdk
+      deprecated: true
+      displayName: Eyetracking Type
+      displayTag: HMD
+      legacyNames: [cvr.device.eyetracking.type]
+
+    # --- Geo ---
+    c3d.geo.country:
+      unnested: true
+      description: Country from IP geolocation
+      computedBy: backend
+      displayName: Location (Country)
+      displayTag: Geo
+      legacyNames: [cvr.geo.country]
+    c3d.geo.countryIso:
+      unnested: true
+      description: Country ISO code (e.g. US, CA)
+      computedBy: backend
+      displayName: Location (Country ISO)
+      displayTag: Geo
+    c3d.geo.city:
+      unnested: true
+      description: City from IP geolocation
+      computedBy: backend
+      displayName: Location (City)
+      displayTag: Geo
+    c3d.geo.subdivision:
+      unnested: true
+      description: Province/state/region from IP geolocation
+      computedBy: backend
+      displayName: Location (Region)
+      displayTag: Geo
+      legacyNames: [cvr.geo.subdivision]
+    c3d.geo.subdivisionIso:
+      unnested: true
+      description: Region/state ISO code
+      computedBy: backend
+      displayName: Location (Region ISO)
+      displayTag: Geo
+    c3d.geo.qualifiedSubdivisionIso:
+      unnested: true
+      description: Fully qualified region ISO code (e.g. US-CA)
+      computedBy: backend
+      displayName: Location (Qualified Region ISO)
+      displayTag: Geo
+
+    # --- Device ---
+    c3d.device.type:
+      description: Device type as reported by the system
+      computedBy: sdk
+      displayName: Type
+      displayTag: Device
+      legacyNames: [cvr.device.type]
+    c3d.device.manufacturer:
+      description: Device manufacturer
+      displayName: Manufacturer
+      displayTag: Device
+      computedBy: sdk
+    c3d.device.model:
+      description: Device model name, e.g. Oculus Quest
+      computedBy: sdk
+      displayName: Model
+      displayTag: Device
+      legacyNames: [cvr.device.model]
+    c3d.device.os:
+      description: Operating system, e.g. Android OS 12
+      computedBy: sdk
+      displayName: Operating System
+      displayTag: Device
+      legacyNames: [cvr.device.os]
+    c3d.device.cpu:
+      description: CPU of the device
+      computedBy: sdk
+      displayName: CPU
+      displayTag: Device
+      legacyNames: [cvr.device.cpu, cvr.device.processor]
+    c3d.device.cpu.vendor:
+      description: CPU manufacturer
+      computedBy: sdk
+      displayName: CPU Vendor
+      displayTag: Device
+      legacyNames: [cvr.device.cpu.vendor]
+    c3d.device.gpu:
+      description: GPU of the device
+      computedBy: sdk
+      displayName: Graphics Card
+      displayTag: Device
+      legacyNames: [cvr.device.gpu, cvr.device.graphics.name, cvr.device.graphics.type]
+    c3d.device.gpu.vendor:
+      description: GPU manufacturer
+      computedBy: sdk
+      displayName: Graphics Card Vendor
+      displayTag: Device
+      legacyNames: [cvr.device.gpu.vendor, cvr.device.graphics.vendor]
+    c3d.device.vendor:
+      description: Device vendor
+      displayName: Device Vendor
+      displayTag: Device
+      computedBy: sdk
+    c3d.device.serialnumber:
+      description: Device serial number
+      displayName: Serial Number
+      displayTag: Device
+      legacyNames: [cvr.vr.serialnumber]
+      computedBy: sdk
+    c3d.device.serial_number:
+      description: Device serial number (alternate key)
+      displayName: Serial Number
+      displayTag: Device
+      computedBy: sdk
+    c3d.device.screenresolution:
+      description: Screen resolution string
+      displayName: Screen Resolution
+      displayTag: Device
+      computedBy: sdk
+    c3d.deviceid:
+      unnested: true
+      description: Unique device identifier (differs between Unity and Unreal)
+      computedBy: sdk
+      displayName: Device Id
+      displayTag: Device
+      legacyNames: [cvr.deviceId]
+    c3d.oculusId:
+      description: Oculus/Meta device ID
+      displayName: Oculus ID
+      displayTag: Device
+      computedBy: sdk
+
+    # --- User ---
+    c3d.username:
+      description: Username string
+      displayName: Username
+      displayTag: User
+      legacyNames: [cvr.name]
+      computedBy: sdk
+    c3d.sessionname:
+      description: Session name string
+      displayName: Session Name
+      displayTag: User
+      legacyNames: [cvr.sessionname, c3d.sessionName]
+      computedBy: sdk
+    c3d.roomsizeDescription:
+      description: Room boundary dimensions as a descriptive string
+      displayName: Room Size Dimensions
+      displayTag: User
+      computedBy: sdk
+    c3d.roomsizeDescriptionMeters:
+      description: Virtual/guardian boundary dimensions in width x height format, e.g. 5.3 x 4.4
+      computedBy: sdk
+      displayName: Room Size Dimensions
+      displayTag: User
+
+    # --- Participant ---
+    c3d.participant.id:
+      description: Participant identifier, set via SDK
+      computedBy: sdk
+      displayName: Participant ID
+      displayTag: Participant
+    c3d.participant.name:
+      unnested: true
+      description: Participant display name, set via SDK
+      computedBy: sdk
+      displayName: Participant Name
+      displayTag: Participant
+    c3d.participant.height:
+      unnested: true
+      description: Participant height property
+      computedBy: sdk
+      displayName: Participant Height
+      displayTag: Participant
+    c3d.participant.armlength:
+      unnested: true
+      description: Participant arm length
+      displayName: Arm Length
+      displayTag: Participant
+      legacyNames: [cvr.armlength]
+      computedBy: sdk
+    c3d.participant.Age:
+      description: Participant age
+      displayName: Participant Age
+      displayTag: Participant
+      computedBy: sdk
+    c3d.participant.Sex:
+      description: Participant sex
+      displayName: Participant Sex
+      displayTag: Participant
+      computedBy: sdk
+    c3d.participant.Color:
+      description: Participant color (custom property)
+      displayName: Participant Color
+      displayTag: Participant
+      computedBy: sdk
+    c3d.participant.Job:
+      description: Participant job (custom property)
+      displayName: Participant Job
+      displayTag: Participant
+      computedBy: sdk
+
+    # --- Multiplayer ---
+    c3d.multiplayer.lobbyId:
+      description: Multiplayer lobby identifier
+      displayName: Lobby ID
+      displayTag: Multiplayer
+      computedBy: sdk
+    c3d.multiplayer.photonAppId:
+      description: Photon Networking app ID
+      displayName: Photon App ID
+      displayTag: Multiplayer
+      computedBy: sdk
+    c3d.multiplayer.photonPlayerId:
+      description: Photon player ID
+      displayName: Photon Player ID
+      displayTag: Multiplayer
+      computedBy: sdk
+    c3d.multiplayer.photonUserId:
+      description: Photon user ID
+      displayName: Photon User ID
+      displayTag: Multiplayer
+      computedBy: sdk
+    c3d.multiplayer.photonServerAddress:
+      description: Photon server address
+      displayName: Photon Server Address
+      displayTag: Multiplayer
+      computedBy: sdk
+    c3d.multiplayer.photonRoomName:
+      description: Photon room name
+      displayName: Photon Room Name
+      displayTag: Multiplayer
+      computedBy: sdk
+    c3d.multiplayer.photonGameMode:
+      description: Photon game mode
+      displayName: Photon Game Mode
+      displayTag: Multiplayer
+      computedBy: sdk
+    c3d.multiplayer.port:
+      description: Multiplayer connection port
+      displayName: Port
+      displayTag: Multiplayer
+      computedBy: sdk
+
+    # --- Legacy-only (no c3d.* equivalent) ---
+    cvr.vr.display.family:
+      description: HMD display family (legacy)
+      displayName: Display Family
+      displayTag: HMD
+      computedBy: sdk
+    cvr.vr.display.model:
+      description: HMD device model (legacy)
+      displayName: Device Model
+      displayTag: HMD
+      computedBy: sdk
+    cvr.vr.enabled:
+      description: Whether VR was enabled (legacy)
+      displayName: VR Enabled
+      displayTag: HMD
+      computedBy: sdk
+    cvr.device.platform:
+      description: Device platform (legacy)
+      displayName: Platform
+      displayTag: Device
+      computedBy: sdk
+    cvr.device.graphics.version:
+      description: Graphics card driver version (legacy)
+      displayName: Graphics Card Version
+      displayTag: Device
+      computedBy: sdk
+    cvr.device.graphics.memory:
+      description: Graphics card memory (legacy)
+      displayName: Graphics Card Memory
+      displayTag: Device
+      computedBy: sdk
+
+  # ===========================================================================
+  # SESSION PROPERTIES — NUMERICAL
+  # nestedFieldName: numericalSessionProp
+  # ===========================================================================
+  numerical:
+    # --- Geo ---
+    c3d.geo.latitude:
+      description: Latitude from IP geolocation
+      computedBy: backend
+      unit: degrees
+      displayName: Location (Latitude)
+      displayTag: Geo
+    c3d.geo.longitude:
+      description: Longitude from IP geolocation
+      computedBy: backend
+      unit: degrees
+      displayName: Location (Longitude)
+      displayTag: Geo
+
+    # --- Device ---
+    c3d.device.memory:
+      description: Device RAM in GB
+      computedBy: sdk
+      unit: GB
+      displayName: Memory (GB)
+      displayTag: Device
+      legacyNames: [cvr.device.memory]
+
+    # --- User/Room ---
+    c3d.height:
+      description: User height
+      unit: meters
+      displayName: Height
+      displayTag: User
+      legacyNames: [cvr.height]
+      computedBy: sdk
+    c3d.roomsize:
+      description: Virtual/guardian room area in square meters
+      computedBy: sdk
+      unit: sq_meters
+      displayName: Room Size
+      displayTag: User
+      legacyNames: [cvr.roomsize, c3d.roomsizeMeters]
+    c3d.multiplayer.maxNumberConnections:
+      description: Max multiplayer connections
+      displayName: Max Number Connections
+      displayTag: Multiplayer
+      computedBy: sdk
+
+    # --- Metrics (top-level scores) ---
+    # Descriptions enriched from SDK session properties database
+    c3d.metrics.app_performance:
+      unnested: true
+      description: Calculated from Average FPS and Lowest 1% FPS
+      computedBy: backend
+      deprecated: true
+      unit: score
+      displayName: App Performance
+      displayTag: Metrics
+    c3d.metrics.average_fps:
+      description: Average FPS across the session
+      computedBy: backend
+      unit: fps
+      displayName: Average FPS
+      displayTag: Metrics
+    c3d.metrics.fps_score:
+      unnested: true
+      description: Quantifies app performance using session FPS; comprises Session Percentage, Degree of Impact, Consistency, and Fluctuation sub-scores
+      computedBy: backend
+      unit: score
+      displayName: FPS Score
+      displayTag: Metrics
+    c3d.metrics.battery_efficiency:
+      description: Battery drain over total session duration
+      computedBy: backend
+      unit: score
+      displayName: Battery Efficiency
+      displayTag: Metrics
+    c3d.metrics.immersion_score:
+      unnested: true
+      description: "Old composite: Spatial Coverage, Dynamic Engagement, Controller Engagement, Orientation, Boundary scores"
+      computedBy: backend
+      deprecated: true
+      unit: score
+      displayName: Immersion Score
+      displayTag: Metrics
+    c3d.metrics.presence_score:
+      unnested: true
+      description: Quantifies the immersive experience; comprises Controller Movement, Gaze Exploration, Spatial Coverage, and User Immersion sub-scores
+      computedBy: backend
+      unit: score
+      displayName: Presence Score
+      displayTag: Metrics
+    c3d.metrics.comfort_score:
+      unnested: true
+      description: User comfort within the app; comprises Head Orientation and Controller Ergonomics sub-scores
+      computedBy: backend
+      unit: score
+      displayName: Ergonomics Score
+      displayTag: Metrics
+    c3d.metrics.orientation_score:
+      unnested: true
+      description: Calculated from sensor yaw and pitch scores
+      computedBy: backend
+      deprecated: true
+      unit: score
+      displayName: Orientation Score
+      displayTag: Metrics
+    c3d.metrics.boundary_score:
+      unnested: true
+      description: Number of times user hit their spatial boundary
+      computedBy: backend
+      deprecated: true
+      unit: score
+      displayName: Boundary Score
+      displayTag: Metrics
+    c3d.metrics.standing_percentage:
+      unnested: true
+      description: Percentage of session time the user was assessed to be standing
+      computedBy: backend
+      unit: percent
+      displayName: Standing Percentage
+      displayTag: Metrics
+    c3d.metrics.controller_events_score:
+      unnested: true
+      description: Count of controller events in the event stream; 10 events = max score 100
+      computedBy: backend
+      deprecated: true
+      unit: score
+      displayName: Controller Events Score
+      displayTag: Metrics
+    c3d.metrics.controller_engagement_score:
+      unnested: true
+      description: Tracks controller movement velocity to determine active engagement
+      computedBy: backend
+      deprecated: true
+      unit: score
+      displayName: Controller Engagement Score
+      displayTag: Metrics
+    c3d.metrics.dynamic_engagement_score:
+      unnested: true
+      description: Counts instances where gaze collides with a dynamic object or event involving dynamic objects
+      computedBy: backend
+      deprecated: true
+      unit: score
+      displayName: Dynamic Engagement Score
+      displayTag: Metrics
+    c3d.metrics.spatial_coverage_score:
+      unnested: true
+      description: Spatial coverage score
+      computedBy: backend
+      unit: score
+      displayName: Spatial Coverage Score
+      displayTag: Metrics
+    c3d.metrics.head_orientation_score:
+      description: Head orientation score
+      computedBy: backend
+      unit: score
+      displayName: Head Orientation Score
+      displayTag: Metrics
+    c3d.metrics.controller_ergonomic_score:
+      description: Controller ergonomic score
+      computedBy: backend
+      unit: score
+      displayName: Controller Ergonomic Score
+      displayTag: Metrics
+    c3d.metrics.ergonomics_score:
+      unnested: true
+      description: Old ergonomic score based on controller height relative to HMD
+      computedBy: backend
+      deprecated: true
+      unit: score
+      displayName: Ergonomics Score
+      displayTag: Metrics
+    c3d.metrics.cyberwellness_score:
+      description: Cyberwellness score
+      computedBy: backend
+      unit: score
+      displayName: Cyberwellness Score
+      displayTag: Metrics
+    c3d.metrics.boundary_relative_yaw:
+      description: Boundary relative yaw metric
+      computedBy: backend
+      unit: score
+      displayName: Boundary Relative Yaw
+      displayTag: Metrics
+    c3d.metrics.virtual_yaw:
+      description: Virtual yaw metric
+      computedBy: backend
+      unit: score
+      displayName: Virtual Yaw
+      displayTag: Metrics
+
+    # --- Metric Components ---
+    # Descriptions enriched from SDK session properties database
+    c3d.metric_components.battery_drain_sum:
+      unnested: true
+      description: Total battery drain
+      computedBy: backend
+      displayName: Battery Drain Sum
+      displayTag: Metrics
+    c3d.metric_components.battery_drain_time_millis:
+      unnested: true
+      description: Time period over which battery drain was measured
+      computedBy: backend
+      unit: ms
+      displayName: Battery Drain Time (ms)
+      displayTag: Metrics
+    c3d.metric_components.fps_data_point_sum:
+      unnested: true
+      description: Sum of FPS values across all data points
+      computedBy: backend
+      deprecated: true
+      displayName: FPS Data Point Sum
+      displayTag: Metrics
+    c3d.metric_components.fps_data_point_count:
+      unnested: true
+      description: Count of FPS data points used to compute average FPS
+      computedBy: backend
+      deprecated: true
+      displayName: FPS Data Point Count
+      displayTag: Metrics
+    c3d.metric_components.average_controller_movement_meters_per_second:
+      description: Controller movement speed via Euclidean distance
+      computedBy: backend
+      unit: m/s
+      displayName: Average Controller Movement (m/s)
+      displayTag: Metrics
+    c3d.metric_components.fps_score.consistency_app_performance:
+      unnested: true
+      description: MAD of the difference between average FPS and lowest 1% FPS
+      computedBy: backend
+      unit: score
+      displayName: FPS Score - Consistency
+      displayTag: Metrics
+      legacyNames: [c3d.metric_components.fps_consistency_app_performance]
+    c3d.metric_components.fps_score.degree_app_performance:
+      unnested: true
+      description: Median difference between average FPS and lowest 1% FPS
+      computedBy: backend
+      unit: score
+      displayName: FPS Score - Degree
+      displayTag: Metrics
+      legacyNames: [c3d.metric_components.fps_degree_app_performance]
+    c3d.metric_components.fps_score.fluctuation_app_performance:
+      unnested: true
+      description: Standard deviation in lowest 1% FPS between consecutive frames
+      computedBy: backend
+      unit: score
+      displayName: FPS Score - Fluctuation
+      displayTag: Metrics
+      legacyNames: [c3d.metric_components.fps_fluctuation_app_performance]
+    c3d.metric_components.fps_score.session_percentage:
+      unnested: true
+      description: Percentage of average FPS values above 71.0 Hz
+      computedBy: backend
+      unit: percent
+      displayName: FPS Score - Session Percentage
+      displayTag: Metrics
+      legacyNames: [c3d.metric_components.fps_session_percentage]
+    c3d.metric_components.presence_score.controller_movement_score:
+      unnested: true
+      description: Median movement rate of controllers
+      computedBy: backend
+      unit: score
+      displayName: Presence Score - Controller Movement
+      displayTag: Metrics
+    c3d.metric_components.presence_score.gaze_exploration_score:
+      unnested: true
+      description: How much visual information passed across the user's visual field
+      computedBy: backend
+      unit: score
+      displayName: Presence Score - Gaze Exploration
+      displayTag: Metrics
+    c3d.metric_components.presence_score.spatial_coverage_score:
+      unnested: true
+      description: How much the user travelled in physical/virtual space
+      computedBy: backend
+      unit: score
+      displayName: Presence Score - Spatial Coverage
+      displayTag: Metrics
+    c3d.metric_components.presence_score.interruption_score:
+      unnested: true
+      description: Quantifies disruptive experiences like controller tracking loss or hitting spatial boundary
+      computedBy: backend
+      unit: score
+      displayName: Presence Score - Interruption
+      displayTag: Metrics
+    c3d.metric_components.comfort_score.head_orientation_score:
+      unnested: true
+      description: "Overall head orientation score: pitch (nodding) and roll (side-to-side stretching)"
+      computedBy: backend
+      unit: score
+      displayName: Ergonomics - Head Orientation
+      displayTag: Metrics
+    c3d.metric_components.comfort_score.head_orientation_score_pitch_score:
+      unnested: true
+      description: Head strain score measured by pitch angle
+      computedBy: backend
+      unit: score
+      displayName: Ergonomics - Head Orientation Pitch
+      displayTag: Metrics
+      legacyNames: [c3d.metric_components.comfort_score.pitch_score]
+    c3d.metric_components.comfort_score.head_orientation_score_roll_score:
+      unnested: true
+      description: Head strain score measured by roll angle
+      computedBy: backend
+      unit: score
+      displayName: Ergonomics - Head Orientation Roll
+      displayTag: Metrics
+      legacyNames: [c3d.metric_components.comfort_score.roll_score]
+    c3d.metric_components.comfort_score.controller_ergonomic_score:
+      unnested: true
+      description: Overall controller ergonomic score combining movements in 3D space
+      computedBy: backend
+      unit: score
+      displayName: Ergonomics - Controller
+      displayTag: Metrics
+    c3d.metric_components.comfort_score.controller_ergonomic_score_forward_reach_score:
+      unnested: true
+      description: Ergonomic score for forward/backward controller reach
+      computedBy: backend
+      unit: score
+      displayName: Ergonomics - Controller Forward Reach
+      displayTag: Metrics
+      legacyNames: [c3d.metric_components.comfort_score.forward_reach_score]
+    c3d.metric_components.comfort_score.controller_ergonomic_score_horizontal_reach_score:
+      unnested: true
+      description: Ergonomic score for lateral controller reach relative to torso
+      computedBy: backend
+      unit: score
+      displayName: Ergonomics - Controller Horizontal Reach
+      displayTag: Metrics
+      legacyNames: [c3d.metric_components.comfort_score.horizontal_reach_score]
+    c3d.metric_components.comfort_score.controller_ergonomic_score_vertical_reach_score:
+      unnested: true
+      description: Ergonomic score for reaching above or below the user's head
+      computedBy: backend
+      unit: score
+      displayName: Ergonomics - Controller Vertical Reach
+      legacyNames: [c3d.metric_components.comfort_score.vertical_reach_score]
+      displayTag: Metrics
+    c3d.metric_components.pitch_score:
+      description: Head pitch ergonomic score
+      computedBy: backend
+      unit: score
+      displayName: Pitch Score
+      displayTag: Metrics
+    c3d.metric_components.roll_score:
+      description: Head roll ergonomic score
+      computedBy: backend
+      unit: score
+      displayName: Roll Score
+      displayTag: Metrics
+    c3d.metric_components.forward_reach_score:
+      description: Forward reach ergonomic score
+      computedBy: backend
+      unit: score
+      displayName: Forward Reach Score
+      displayTag: Metrics
+    c3d.metric_components.horizontal_reach_score:
+      description: Horizontal reach ergonomic score
+      computedBy: backend
+      unit: score
+      displayName: Horizontal Reach Score
+      displayTag: Metrics
+    c3d.metric_components.vertical_reach_score:
+      description: Vertical reach ergonomic score
+      computedBy: backend
+      unit: score
+      displayName: Vertical Reach Score
+      displayTag: Metrics
+    c3d.metric_components.controller_ergo_counts_forwards_total:
+      unnested: true
+      description: Total forward controller reach count
+      computedBy: backend
+      displayName: Controller Ergonomics - Forwards Total
+      displayTag: Metrics
+    c3d.metric_components.controller_ergo_counts_forwards_far:
+      unnested: true
+      description: Far forward controller reach count
+      computedBy: backend
+      displayName: Controller Ergonomics - Forwards Far
+      displayTag: Metrics
+    c3d.metric_components.controller_ergo_counts_forwards_medium:
+      unnested: true
+      description: Medium forward controller reach count
+      computedBy: backend
+      displayName: Controller Ergonomics - Forwards Medium
+      displayTag: Metrics
+    c3d.metric_components.controller_ergo_counts_forwards_near:
+      unnested: true
+      description: Near forward controller reach count
+      computedBy: backend
+      displayName: Controller Ergonomics - Forwards Near
+      displayTag: Metrics
+    c3d.metric_components.controller_ergo_counts_horizontal_total:
+      unnested: true
+      description: Total horizontal controller reach count
+      computedBy: backend
+      displayName: Controller Ergonomics - Horizontal Total
+      displayTag: Metrics
+    c3d.metric_components.controller_ergo_counts_horizontal_far:
+      unnested: true
+      description: Far horizontal controller reach count
+      computedBy: backend
+      displayName: Controller Ergonomics - Horizontal Far
+      displayTag: Metrics
+    c3d.metric_components.controller_ergo_counts_horizontal_medium:
+      unnested: true
+      description: Medium horizontal controller reach count
+      computedBy: backend
+      displayName: Controller Ergonomics - Horizontal Medium
+      displayTag: Metrics
+    c3d.metric_components.controller_ergo_counts_horizontal_near:
+      unnested: true
+      description: Near horizontal controller reach count
+      computedBy: backend
+      displayName: Controller Ergonomics - Horizontal Near
+      displayTag: Metrics
+    c3d.metric_components.controller_ergo_counts_vertical_total:
+      unnested: true
+      description: Total vertical controller reach count
+      computedBy: backend
+      displayName: Controller Ergonomics - Vertical Total
+      displayTag: Metrics
+    c3d.metric_components.controller_ergo_counts_vertical_far:
+      unnested: true
+      description: Far vertical controller reach count
+      computedBy: backend
+      displayName: Controller Ergonomics - Vertical Far
+      displayTag: Metrics
+    c3d.metric_components.controller_ergo_counts_vertical_medium:
+      unnested: true
+      description: Medium vertical controller reach count
+      computedBy: backend
+      displayName: Controller Ergonomics - Vertical Medium
+      displayTag: Metrics
+    c3d.metric_components.controller_ergo_counts_vertical_near:
+      unnested: true
+      description: Near vertical controller reach count
+      computedBy: backend
+      displayName: Controller Ergonomics - Vertical Near
+      displayTag: Metrics
+    c3d.metric_components.dynamic_input_controller_percentage:
+      unnested: true
+      description: Proportion of session using controller input
+      computedBy: backend
+      unit: percent
+      displayName: Dynamic Input Controller Percentage
+      displayTag: Metrics
+    c3d.metric_components.dynamic_input_hand_percentage:
+      unnested: true
+      description: Proportion of session using hand tracking input
+      computedBy: backend
+      unit: percent
+      displayName: Dynamic Input Hand Percentage
+      displayTag: Metrics
+    c3d.metric_components.dynamic_input_none_percentage:
+      unnested: true
+      description: Proportion of session with no input method active
+      computedBy: backend
+      unit: percent
+      displayName: Dynamic Input None Percentage
+      displayTag: Metrics
+    c3d.metric_components.cyberwellness.continuous_movement:
+      description: Continuous movement component of cyberwellness
+      computedBy: backend
+      unit: score
+      displayName: Cyberwellness - Continuous Movement
+      displayTag: Metrics
+    c3d.metric_components.cyberwellness.acceleration_variability:
+      description: Acceleration variability component of cyberwellness
+      computedBy: backend
+      unit: score
+      displayName: Cyberwellness - Acceleration Variability
+      displayTag: Metrics
+    c3d.metric_components.cyberwellness.translational_speed:
+      description: Translational speed component of cyberwellness
+      computedBy: backend
+      unit: score
+      displayName: Cyberwellness - Translational Speed
+      displayTag: Metrics
+    c3d.metric_components.cyberwellness.translational_movement:
+      description: Translational movement component of cyberwellness
+      computedBy: backend
+      unit: score
+      displayName: Cyberwellness - Translational Movement
+      displayTag: Metrics
+    c3d.metric_components.cyberwellness.visual_continuity:
+      description: Visual continuity component of cyberwellness
+      computedBy: backend
+      unit: score
+      displayName: Cyberwellness - Visual Continuity
+      displayTag: Metrics
+
+    # --- Sensor Aggregates ---
+    # These are per-session aggregate stats (avg/min/max) from time-series sensor data.
+    # Format: c3d.session.sensor.<sensorName>.<stat>
+    # Common sensors: c3d.fps.avg, c3d.fps.1pl, c3d.fps.5pl, c3d.hmd.pitch, c3d.hmd.yaw,
+    #   HMD Battery Level, HMD Battery State, heartrate, c3d.heartrate
+    # Each has .avg, .min, .max variants.
+    # Not individually listed here — discover via propertyNameQueries.
+
+  # ===========================================================================
+  # SESSION PROPERTIES — BOOLEAN
+  # nestedFieldName: booleanSessionProp
+  # ===========================================================================
+  boolean:
+    c3d.session_tag.test:
+      description: Whether this session is tagged as a test session
+      computedBy: backend
+      displayName: Test Session
+      displayTag: Common
+    c3d.session_tag.junk:
+      description: Whether this session is tagged as junk/invalid
+      computedBy: backend
+      displayName: Junk Session
+      displayTag: Common
+    c3d.app.inEditor:
+      unnested: true
+      description: Whether it was run in the editor
+      computedBy: sdk
+      displayName: In-Editor
+      displayTag: App
+      legacyNames: [cvr.app.inEditor]
+    c3d.device.eyetracking.enabled:
+      unnested: true
+      description: Whether eye tracking was active
+      computedBy: sdk
+      displayName: Eyetracking Enabled
+      displayTag: HMD
+      legacyNames: [cvr.device.eyetracking.enabled]
+    c3d.app.handtracking.enabled:
+      description: Whether hand tracking was enabled
+      computedBy: sdk
+      displayName: Hand Tracking Enabled
+      displayTag: App
+    c3d.device.controllerinputs.enabled:
+      description: Whether controller input tracking is enabled
+      computedBy: sdk
+      displayName: Controller Inputs Enabled
+      displayTag: Device
+    c3d.headphonespresent:
+      description: Whether headphones were connected
+      displayName: Headphones Enabled
+      displayTag: Device
+      computedBy: sdk
+    c3d.hmd.RunningOnBattery:
+      description: Whether the HMD was running on battery
+      displayName: Running On Battery
+      displayTag: HMD
+      computedBy: sdk
+    c3d.roomscale:
+      description: Whether roomscale tracking was enabled
+      displayName: Roomscale Enabled
+      displayTag: User
+      legacyNames: [cvr.roomscale]
+      computedBy: sdk
+
+    # --- XRPF Privacy ---
+    xrpf.allowed.location.data:
+      description: User consented to location data collection
+      displayName: User Allowed Location Data
+      displayTag: XRPF
+      computedBy: sdk
+    xrpf.allowed.hardware.data:
+      description: User consented to hardware data collection
+      displayName: User Allowed Hardware Data
+      displayTag: XRPF
+      computedBy: sdk
+    xrpf.allowed.bio.data:
+      description: User consented to biometric data collection
+      displayName: User Allowed Biometric Data
+      displayTag: XRPF
+      computedBy: sdk
+    xrpf.allowed.spatial.data:
+      description: User consented to spatial data collection
+      displayName: User Allowed Spatial Data
+      displayTag: XRPF
+      computedBy: sdk
+    xrpf.allowed.social.data:
+      description: User consented to social data collection
+      displayName: User Allowed Social Data
+      displayTag: XRPF
+      computedBy: sdk
+
+# =============================================================================
+# EVENT PROPERTIES — TEXTUAL
+# nestedFieldName: textualEventProp
+# =============================================================================
+event_properties:
+  textual:
+    questionSetId:
+      description: ExitPoll question set identifier (only on cvr.exitpoll events)
+      displayName: Question Set ID
+      displayTag: ExitPoll
+      computedBy: sdk
+    hook:
+      description: ExitPoll hook name (only on cvr.exitpoll events)
+      displayName: Hook Name
+      displayTag: ExitPoll
+      computedBy: sdk
+    # Note: most event properties are custom per-application.
+    # Use propertyNameQueries to discover them.
+
+  numerical:
+    # Event-level numerical properties are typically custom.
+    # Use propertyNameQueries to discover them.
+    {}
+
+  boolean:
+    # Event-level boolean properties are typically custom.
+    # Use propertyNameQueries to discover them.
+    {}
+
+# =============================================================================
+# WELL-KNOWN EVENT NAMES
+# Not exhaustive — use fieldValuesQueries on eventName to get the full list.
+# =============================================================================
+well_known_event_names:
+  c3d.sessionStart:
+    description: Fired when a session begins
+    displayName: Session Start
+    displayTag: Event
+  c3d.sessionEnd:
+    description: Fired when a session ends
+    displayName: Session End
+    displayTag: Event
+  c3d.SceneChange:
+    description: Fired when the user transitions between scenes
+    displayName: Scene Change
+    displayTag: Event
+  c3d.userIdleStart:
+    description: Fired when the user becomes idle
+    displayName: User Idle Start
+    displayTag: Event
+  c3d.userIdleEnd:
+    description: Fired when the user resumes from idle
+    displayName: User Idle End
+    displayTag: Event
+  cvr.exitpoll:
+    description: Fired when an exit poll is presented to the user
+    displayName: ExitPoll Instance
+    displayTag: Event
