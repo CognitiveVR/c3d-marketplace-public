@@ -227,7 +227,7 @@ All that's going on here is these 3 specific session fields are enshrined and ke
 }
 ...
 ```
-This field with at minimum `projectId` set is mandatory. (Though there is a global slicer endpoint that doesn't require this field, which is used to support the global analysis tool in the backoffice.)
+This field with at minimum `projectId` set is mandatory.
 
 ### Event Filters
 The optional top level field `eventFilters` can have 1 or more filters in it. These function similarly to session filters, but the fields referenced must be event fields. What actually happens when you filter on session vs event fields, while aggregating session vs event fields, can be tricky, however. Bearing in mind that a session has many events:
