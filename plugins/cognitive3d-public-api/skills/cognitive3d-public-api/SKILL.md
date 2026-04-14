@@ -206,7 +206,7 @@ Response array has `name` (friendly) and `sdkId` (UUID) fields. Match on `name`,
 
 - **Session list response**: array of session objects with `sessionId`, `date`, `duration`, `userId`, `properties` (nested object of all session properties)
 - **jsonRequests ALL response**: `{ "data": { "gaze": [...], "fixations": [...], "events": [...], "dynamics": [...], "dynamics.manifest": {...}, "sensors": [...], "boundary": [...] } }`
-- **Slicer query response**: nested under `aggregations → <name> → <op_name> → value`. Example for a `sessionCount` op named `session_count` under aggregation `main`: `response["aggregations"]["main"]["session_count"]["value"]`
+- **Slicer query response** (with `json0_key_y`): For 0D (no slice-bys), the value is at `aggregations.<name>.<op_name>.value`. For 1D, `aggregations.<name>.<op_name>.values` is an array of `{ "x": <bucket>, "value": <number> }`. For 2D, each entry has `{ "x": <bucket>, "values": { "<dim2_key>": <number>, ... } }` — dimension keys are named, not positional. See `references/output_types.md` for full details.
 - **Gaze metric response**: `{ "sessionCount": N, "metrics": { "<sdkId>": { "averageGazeLength": ..., "totalGazeCount": ..., ... } } }`
 
 ---
@@ -236,6 +236,7 @@ The slicer is the main analytics query engine. Endpoint: `POST /v0/datasets/sess
   "aggregations": [
     {
       "name": "main",
+      "outputType": "json0_key_y",
       "operations": [
         { "name": "session_count", "type": "sessionCount" }
       ]
@@ -244,7 +245,9 @@ The slicer is the main analytics query engine. Endpoint: `POST /v0/datasets/sess
 }
 ```
 
-Always include `"sessionType": "project"` — the default is scene sessions which is almost never what you want.
+**Always include `"sessionType": "project"`** — the default is scene sessions which is almost never what you want.
+
+Always set `"outputType": "json0_key_y"` on every aggregation. The default `"legacy"` format you get if you omit this field uses positional arrays where dimension values are mapped by index to a separate `labels` array — this is error-prone, especially when a dimension has sparse buckets (e.g. only junk=true sessions exist but no junk=false). The `json0_key_y` format uses named keys instead, making each bucket self-describing and unambiguous. See `output_types.md` for all format options.
 
 ### Field references
 
