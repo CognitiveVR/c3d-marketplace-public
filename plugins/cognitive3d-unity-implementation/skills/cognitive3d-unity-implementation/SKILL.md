@@ -1,5 +1,5 @@
 ---
-name: c3d-unity-implementation
+name: cognitive3d-unity-implementation
 description: "Cognitive3D Unity SDK implementation strategy for client projects. Use this skill whenever someone asks about integrating Cognitive3D analytics, planning what to track, setting up the SDK in Unity, creating a tracking plan, or implementing custom events/dynamic objects/exit polls/session properties. Also use when the user mentions Cognitive3D, C3D, XR analytics, spatial analytics, or wants to instrument a VR/AR/MR application for behavioral data collection. This covers the full workflow: discovery, data strategy, phased implementation, and technical routing."
 ---
 

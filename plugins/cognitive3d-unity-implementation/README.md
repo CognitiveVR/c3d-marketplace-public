@@ -1,10 +1,10 @@
-# c3d-unity-implementation Claude Code Plugin
+# cognitive3d-unity-implementation Claude Code Plugin
 
 A [Claude Code](https://docs.anthropic.com/en/docs/claude-code) plugin that provides implementation strategy guidance for the [Cognitive3D](https://cognitive3d.com) Unity SDK — an XR/VR/AR/MR analytics platform.
 
 ## What it does
 
-Activates the `c3d-unity-implementation` skill, which guides Claude through the full workflow for implementing Cognitive3D analytics in Unity projects:
+Activates the `cognitive3d-unity-implementation` skill, which guides Claude through the full workflow for implementing Cognitive3D analytics in Unity projects:
 
 - **Discovery** — asks the right questions before recommending instrumentation
 - **Data strategy** — classifies projects by archetype, maps business questions to SDK primitives
@@ -17,7 +17,7 @@ Activates the `c3d-unity-implementation` skill, which guides Claude through the 
 
 ```
 /plugin marketplace add CognitiveVR/c3d-marketplace-public
-/plugin install c3d-unity-implementation@c3d-marketplace-public
+/plugin install cognitive3d-unity-implementation@c3d-marketplace-public
 ```
 
 ### From GitHub
@@ -38,7 +38,7 @@ Add to your Claude Code settings:
 ### Local (development)
 
 ```bash
-claude --plugin-dir ./plugins/c3d-unity-implementation
+claude --plugin-dir ./plugins/cognitive3d-unity-implementation
 ```
 
 ## Usage
@@ -46,7 +46,7 @@ claude --plugin-dir ./plugins/c3d-unity-implementation
 The skill activates automatically when you ask about Cognitive3D Unity SDK integration, tracking plans, or XR analytics instrumentation. You can also invoke it directly:
 
 ```
-/c3d-unity-implementation
+/cognitive3d-unity-implementation
 ```
 
 ## Bundled References

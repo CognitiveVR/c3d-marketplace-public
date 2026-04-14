@@ -14,9 +14,9 @@
       "category": "development"
     },
     {
-      "name": "c3d-unity-implementation",
+      "name": "cognitive3d-unity-implementation",
       "description": "Cognitive3D Unity SDK implementation strategy — guides discovery, data strategy, phased instrumentation, and technical routing for VR/AR/MR analytics.",
-      "source": "./plugins/c3d-unity-implementation",
+      "source": "./plugins/cognitive3d-unity-implementation",
       "category": "development"
     }
   ]
