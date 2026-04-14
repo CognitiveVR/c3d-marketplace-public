@@ -20,16 +20,18 @@ Then install the plugin you want:
 
 ## Available Plugins
 
-| Plugin | Description |
-|--------|-------------|
-| **cognitive3d-public-api** | Expert guide for the Cognitive3D REST API — constructing requests, choosing endpoints, building slicer queries, and parsing responses for XR session analytics |
+| Plugin                               | Description                                                                                                                                                    |
+|--------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **cognitive3d-public-api**           | Expert guide for the Cognitive3D REST API — constructing requests, choosing endpoints, building slicer queries, and parsing responses for XR session analytics |
+| **cognitive3d-unity-implementation** | Unity SDK implementation strategy — guides discovery, data strategy, phased instrumentation, and technical routing for VR/AR/MR analytics                      |
 
 ## Usage
 
-Once installed, the skill activates automatically when you ask Claude about Cognitive3D data. You can also invoke it directly:
+Once installed, skills activate automatically when you ask Claude about relevant topics. You can also invoke them directly:
 
 ```
 /cognitive3d-public-api
+/cognitive3d-unity-implementation
 ```
 
 ### What the API skill helps with
@@ -39,6 +41,13 @@ Once installed, the skill activates automatically when you ask Claude about Cogn
 - Parsing and interpreting API responses
 - Building Python, JavaScript, and C# scripts for data pipelines and dashboards
 - Looking up authentication, field names, and property paths
+
+### What the Unity implementation skill helps with
+
+- Discovery — asking the right questions before recommending instrumentation
+- Classifying projects by business motion and archetype
+- Building phased tracking plans (custom events, dynamic objects, exit polls, session properties)
+- Routing to the correct Unity SDK APIs and dashboard docs
 
 ## Prerequisites
 
