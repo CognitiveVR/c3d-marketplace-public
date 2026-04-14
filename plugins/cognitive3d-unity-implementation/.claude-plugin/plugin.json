@@ -1,0 +1,11 @@
+{
+  "name": "cognitive3d-unity-implementation",
+  "description": "Cognitive3D Unity SDK implementation strategy — guides discovery, data strategy, phased instrumentation, and technical routing for VR/AR/MR analytics.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Cognitive3D",
+    "email": "dev@cognitive3d.com"
+  },
+  "license": "MIT",
+  "keywords": ["cognitive3d", "c3d", "unity", "xr", "vr", "ar", "mr", "analytics", "sdk", "implementation", "tracking"]
+}

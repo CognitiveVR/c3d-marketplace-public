@@ -12,6 +12,12 @@
       "description": "Expert guide for the Cognitive3D (C3D) REST API — constructing requests, suggesting the right endpoints, filtering, and parsing responses.",
       "source": "./plugins/cognitive3d-public-api",
       "category": "development"
+    },
+    {
+      "name": "cognitive3d-unity-implementation",
+      "description": "Cognitive3D Unity SDK implementation strategy — guides discovery, data strategy, phased instrumentation, and technical routing for VR/AR/MR analytics.",
+      "source": "./plugins/cognitive3d-unity-implementation",
+      "category": "development"
     }
   ]
 }
