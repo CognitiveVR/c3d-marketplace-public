@@ -16,8 +16,8 @@ Body:
 {
   "entityFilters": {
     "projectId": "<int>",
-    "sceneId": "<uuid>",     // optional
-    "versionId": "<int>"     // optional
+    "sceneId": "<uuid>",     // optional — but if provided, versionId is required
+    "versionId": "<int>"     // required when sceneId is present; optional otherwise
   },
   "page": 0,
   "limit": 20,

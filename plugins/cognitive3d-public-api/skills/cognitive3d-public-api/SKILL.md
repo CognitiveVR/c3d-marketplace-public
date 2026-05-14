@@ -148,8 +148,8 @@ POST /v0/datasets/sessions/paginatedListQueries
 {
   "entityFilters": {
     "projectId": "<int>",
-    "sceneId": "<uuid>",    // optional
-    "versionId": "<int>"    // optional
+    "sceneId": "<uuid>",    // optional — but if provided, versionId is required
+    "versionId": "<int>"    // required when sceneId is present; optional otherwise
   },
   "page": 0,
   "limit": 20,
