@@ -129,7 +129,13 @@ Use this decision tree when the user describes what they want:
 **"Project info + scene list"**
 → `GET /v0/projects/:projectId`
 
+**"Details of a single objective (steps, versions, LMS config)"**
+→ `GET /v0/projects/:projectId/objectives/:objectiveId` (single objective with components)
+→ `GET /v0/projects/:projectId/objectives` (all objectives in the project)
+
 **"Training outcomes / pass-fail for a scenario"**
+→ `POST /v0/datasets/objectives/objectiveResultQueries` (aggregate succeeded/failed counts with filters)
+→ `POST /v0/datasets/objectives/objectiveStepResultQueries` (per-step pass/fail counts and timing with filters)
 → `GET /v0/versions/:versionId/sessions/:sessionId/objectiveData` (per-session step results)
 → `GET /v0/projects/:projectId/objectiveVersions/:objectiveVersionId/results.csv` (bulk export)
 
@@ -198,7 +204,9 @@ Response array has `name` (friendly) and `sdkId` (UUID) fields. Match on `name`,
 5. **The slicer filter schema is non-obvious** — nested `fieldParent`/`nestedFieldName`/`path` structure for session properties vs flat `fieldName`/`fieldParent` for built-in fields. See the Slicer Query System section below.
 6. **Never guess property names** — property paths (e.g. `c3d.app.version`, `c3d.session_tag.test`) are not intuitive enough to infer. Before using a property in a query, either look it up in `references/slicer_fields.yaml` or discover it via `POST /v0/datasets/sessions/slicerPropertyNameQueries` (see `references/slicer_api_guide.md`). The built-in field names listed in this file (like `date`, `duration`, `sessionId`) are safe to use directly — it's the property `path` values that must be verified.
 
-7. **Always make HTTP requests sequentially, never in parallel** — When running queries across multiple projects, sessions, or endpoints, execute requests one at a time. Do not fire parallel requests even if asked to query "all projects" or collate data across many resources. This avoids rate limiting and ensures predictable behavior.
+7. **`objectiveVersionId` is NOT the objective's `id`** — Result endpoints (`objectiveResultQueries`, `objectiveStepResultQueries`, `results.csv`, `stepResults`) all take an `objectiveVersionId`, which is the `id` field inside `objectiveVersions[]`, not the top-level objective `id`. Using the wrong ID will silently return empty or mismatched results. Always fetch the correct value from `GET /v0/projects/:projectId/objectives/:objectiveId` and use `objectiveVersions[].id`. An objective can have multiple versions; use the one where `isActive: true` unless targeting a specific historical version.
+
+8. **Always make HTTP requests sequentially, never in parallel** — When running queries across multiple projects, sessions, or endpoints, execute requests one at a time. Do not fire parallel requests even if asked to query "all projects" or collate data across many resources. This avoids rate limiting and ensures predictable behavior.
 
 ---
 
