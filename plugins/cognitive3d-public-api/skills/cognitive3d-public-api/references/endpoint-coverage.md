@@ -47,10 +47,13 @@ Update this table whenever a route is added, changed, or gets an example respons
 | `organizations/:id/tags/all` | GET | ✅ | — |
 | **Objectives** | | | |
 | `projects/:id/objectives` | GET | ✅ | — |
+| `projects/:id/objectives/:id` | GET | ✅ | — |
 | `versions/:id/objectives/:id` | GET | ❌ | — |
 | `versions/:id/sessions/:id/objectiveData` | GET | ✅ | — |
 | `versions/:id/objectiveVersions/:id/stepResults` | GET | ✅ inline | — |
 | `projects/:id/objectiveVersions/:id/results.csv` | GET | — CSV file | `query params` |
+| `datasets/objectives/objectiveResultQueries` | POST | ✅ | `sessionFilters` |
+| `datasets/objectives/objectiveStepResultQueries` | POST | ✅ | `sessionFilters` |
 | **ExitPoll** | | | |
 | `projects/:id/questionSets` | GET | ✅ | — |
 | `projects/:id/questionSets/:name` | GET | ✅ | — |

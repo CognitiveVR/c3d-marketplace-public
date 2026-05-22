@@ -801,12 +801,117 @@ Returns all objectives defined in the project. Each objective contains its `obje
 Key fields: `objectiveVersions[].id` is the `objectiveVersionId` used in session results. Component `type` is `eventstep` (triggered by event name) or `gazestep` (triggered by gaze on a dynamic object). `propertyConditions` optionally filter on event properties.
 
 ```
+GET /v0/projects/:projectId/objectives/:objectiveId
+```
+Returns a single objective by ID. Same structure as one entry from `GET /v0/projects/:projectId/objectives`, including the full `objectiveVersions` array with `objectiveComponents` sorted by `sequenceNumber`.
+```json
+{
+  "id": 269,
+  "name": "Lockout Checklist",
+  "description": "steps required for a successful lock out tag out",
+  "projectId": 341,
+  "enabled": true,
+  "sceneVersionId": null,
+  "sceneId": null,
+  "createdAt": 1768610670000,
+  "updatedAt": 1768610670000,
+  "objectiveVersions": [
+    {
+      "id": 445,
+      "isActive": true,
+      "saveToSession": false,
+      "propertyLabel": null,
+      "criteria": null,
+      "lmsConfigurationMetadata": { /* LMS integration config, if set */ },
+      "objectiveComponents": [
+        {
+          "id": 883,
+          "sequenceNumber": 1,
+          "type": "eventstep",
+          "eventName": "Equip Hard Hat",
+          "occurrenceOperator": "eq",
+          "occurrenceValue": 1,
+          "isStep": true,
+          "isStrict": false,
+          "isNonSequential": false,
+          "propertyConditions": [],
+          "dynamicObjectIds": []
+        }
+        // ... more steps ordered by sequenceNumber
+      ]
+    }
+  ]
+}
+```
+Note: `objectiveComponents` are returned in arbitrary order — always sort by `sequenceNumber` before displaying or processing steps.
+
+```
 GET /v0/versions/:versionId/objectives/:objectiveId
 GET /v0/versions/:versionId/sessions/:sessionId/objectiveData
 GET /v0/versions/:versionId/objectiveVersions/:objectiveVersionId/stepResults?excludeJunkAndTest=true
     // Returns: [{ step, succeeded, failed, averageStepCompletionTime, averageStepDuration }]
 GET /v0/projects/:projectId/objectiveVersions/:objectiveVersionId/results.csv?excludeJunkAndTestSessions=true&targetNewObjectives=true
 ```
+
+> ⚠️ **`objectiveVersionId` is NOT the objective's `id`** — All result endpoints below take an `objectiveVersionId`, which comes from `objectiveVersions[].id` inside the objective, not the top-level `id`. Use `GET /v0/projects/:projectId/objectives/:objectiveId` to retrieve it and pick the entry where `isActive: true` unless targeting a specific historical version. Using the wrong ID returns empty or mismatched results with no error.
+
+```
+POST /v0/datasets/objectives/objectiveResultQueries
+```
+Returns aggregate pass/fail counts for a specific objective version, with optional session filters.
+```json
+// Request
+{
+  "projectId": 341,
+  "objectiveVersionId": 445,
+  "sessionFilters": [
+    { "field": { "fieldName": "date", "fieldParent": "session" }, "op": "gte", "value": 1771747200000 },
+    { "field": { "fieldName": "date", "fieldParent": "session" }, "op": "lte", "value": 1779519599999 },
+    { "field": { "fieldParent": "session", "nestedFieldName": "booleanSessionProp", "path": "c3d.session_tag.test" }, "op": "eq", "value": false }
+  ]
+}
+
+// Response
+{ "succeeded": 141, "failed": 226 }
+```
+`sessionFilters` follows the same filter schema as slicer queries. Always include a test-session exclusion filter unless explicitly querying test data. Response counts are at the session level — a session counts as succeeded only if the objective as a whole passed.
+
+```
+POST /v0/datasets/objectives/objectiveStepResultQueries
+```
+Returns per-step pass/fail counts and timing for a specific objective version, with optional session filters. Same request shape as `objectiveResultQueries`.
+```json
+// Request (same shape as objectiveResultQueries)
+{
+  "projectId": 341,
+  "objectiveVersionId": 445,
+  "sessionFilters": [...]
+}
+
+// Response
+[
+  {
+    "step": 1,
+    "succeeded": 358,
+    "failed": 9,
+    "averageStepCompletionTime": 24828.62,
+    "averageStepDuration": 24828.62
+  },
+  {
+    "step": 2,
+    "succeeded": 351,
+    "failed": 16,
+    "averageStepCompletionTime": 39863.22,
+    "averageStepDuration": 15412.56
+  }
+  // ... one entry per step
+]
+```
+- `averageStepCompletionTime` — average ms from session start to this step's completion
+- `averageStepDuration` — average ms spent on this step alone (completion time minus previous step's completion time)
+- Both times are in milliseconds
+- `succeeded + failed` = sessions that reached this step; totals typically decrease for later steps as users drop off
+- The final step's `succeeded` count equals the overall pass count from `objectiveResultQueries`
 
 > ⚠️ `GET /v0/versions/:versionId/objectiveVersions/:objectiveVersionId/results` returns 404 — do not use this endpoint.
 
