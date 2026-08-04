@@ -30,31 +30,41 @@ When a developer or client asks to integrate, set up, or improve Cognitive3D ana
 
 Do not infer business questions from project structure alone. You may inspect the project for technical context, but that is not a substitute for discovery.
 
-### 2. Never read or expose credentials
+### 2. Project conventions outrank generic advice
+
+Before recommending instrumentation or writing code, check whether the project defines its own Cognitive3D conventions — an implementation guide, data design document, telemetry standard, project configuration, or a relevant section of `CLAUDE.md` or `CONTRIBUTING.md`. Look in the repo root, in `docs/`, and at any markdown file whose name mentions telemetry, analytics, instrumentation, data design, or Cognitive3D.
+
+If such a document exists, **it wins**. Match its event naming, property casing, required-property lists, environment layout and session-tag vocabulary, even where this skill's generic recommendations differ. A team with a house standard cares more about conformance than about optimality, and a parallel scheme is worse than an imperfect one applied consistently.
+
+Where the document labels which items are Editor work and which are code, honour those labels rather than re-deriving them, and never offer to perform an Editor-only step (see rule 8).
+
+If the project has no such document, offer to draft one. A short conventions file is the cheapest way to keep later instrumentation consistent, and it makes every future session on the project more useful.
+
+### 3. Never read or expose credentials
 
 Never read, log, store, or output API keys, developer keys, SSO secrets, or credentials from `Cognitive3D_Preferences`, environment variables, config files, build scripts, or any other file that may contain secrets. If the SDK needs keys, instruct the developer to enter them in the project setup flow themselves.
 
-### 3. Strategy before code
+### 4. Strategy before code
 
 The strategy docs answer **what to track and why**. The SDK reference answers **how to implement it**. Keep them separate. Do not jump to code until the tracking plan is clear.
 
-### 4. Smallest useful instrumentation
+### 5. Smallest useful instrumentation
 
 Do not recommend every available feature by default. A good plan answers the developer's questions with the smallest decision-grade set of custom events, dynamic objects, session properties, participant properties, objectives, exit polls, and tags.
 
-### 5. Properties over event-name proliferation
+### 6. Properties over event-name proliferation
 
 Do not create separate events for every variation. Use one event plus properties when that answers the question better. Use explicit units in property names — at minimum, durations should use `_seconds`.
 
-### 6. Verify live docs when freshness matters
+### 7. Verify live docs when freshness matters
 
 Do not hard-code SDK versions, release notes, supported hardware, dashboard UI paths, or API auth details into recommendations. When freshness matters, route to live docs.
 
-### 7. Editor workflows vs code tasks
+### 8. Editor workflows vs code tasks
 
 Not all implementation steps are code tasks. Many Cognitive3D features — especially dynamic objects, scene setup, exit poll hook placement, and component configuration — are primarily Unity Editor workflows (add component, configure in Inspector, drag references). Before writing a runtime script for any SDK feature, first check whether the project already has an Editor-based pattern for that feature. If it does, describe the Editor steps instead of generating code. Only write code when the feature genuinely requires runtime logic (e.g., custom events fired from game logic, session properties set from runtime state, ID Pools for spawned objects).
 
-### 8. Default to a concise plan
+### 9. Default to a concise plan
 
 Unless the developer explicitly asks for a full integration roadmap, produce a **quick plan** (Phase 1 only). The full template exists for comprehensive plans, but most first conversations should produce a focused, approachable starting point. See `references/track_plan_template.md` for the quick plan format.
 
@@ -138,6 +148,7 @@ Inspect the project to determine (confirm only if unclear):
 - Whether a naming convention exists for custom events and properties
 - **Execution architecture** — how scripts execute: standard MonoBehaviour callbacks, custom event system, visual scripting, timeline, state machine, coroutine sequencer, or a mix. This determines where analytics code needs to hook in.
 - **Whether instrumentation already exists** — if so, audit it against the universal baseline in `references/data_strategy.md` before recommending additions
+- **Whether the project defines its own C3D conventions** — an implementation guide, data design document, telemetry standard or project configuration. See rule 2: if one exists, it governs naming, required properties and conventions, and this skill's generic advice becomes the fallback
 
 ### Step 2: Classify the project
 
@@ -270,9 +281,35 @@ When the developer asks **how** to implement something, use `references/unity_sd
 
 When routing implementation, identify whether the step is:
 
-- **Editor workflow** — add/configure components in Inspector, upload scenes/objects, create objectives on dashboard. Describe the steps; do not generate code.
-- **Code task** — custom events, session/participant properties, sensor recording, runtime lifecycle logic. Write or modify scripts.
-- **Hybrid** — e.g., exit poll hooks need both a code trigger and dashboard question configuration.
+- **Editor workflow** — add/configure components in Inspector, upload scenes, upload dynamic object meshes; also dashboard configuration when the team configures objectives or ExitPoll question sets there. Describe the steps; do not generate code, and do not offer to perform the step yourself.
+- **Code task** — custom events, session/participant properties, sensor recording, runtime lifecycle logic. Write or modify scripts, following the project's own conventions where they exist (rule 2).
+- **Platform task** — objectives and ExitPoll question sets live on the platform, not in the build. Both can be configured **either** on the dashboard **or** programmatically through the MCP server. Ask which route the team wants before doing either; never assume a write-enabled key exists, or that the team wants one.
+- **Hybrid** — e.g., exit polls need both a code trigger in the app and a question set configured on the platform. The hook name in the Unity call must match the platform-side hook exactly.
+
+#### Choosing a route for objectives and ExitPoll question sets
+
+Objectives and ExitPoll question sets are each configurable both ways, and both routes are fully supported. This is a team preference, not a best practice with one right answer.
+
+**Objectives:**
+
+- **Dashboard** — https://docs.cognitive3d.com/dashboard/creating-objectives/. No API key needed. The right default when objectives are owned by an analyst, researcher or instructional designer rather than a developer; when they change rarely; or when the team would rather not have a write-enabled key in circulation. Describe the steps; do not generate code.
+- **MCP server** — `create_objective`, `update_objective`, `delete_objective`. Worth it when there are many objectives, when staging and production must match exactly, or when the team wants definitions version-controlled and reviewed like code.
+
+**ExitPoll question sets and hooks:**
+
+- **Dashboard** — question set and hook creation is documented alongside the Unity integration at https://docs.cognitive3d.com/unity/exitpoll/. No API key needed. The right default when a researcher or designer owns question wording, which is common — survey copy is usually not a developer's call.
+- **MCP server** — `create_exitpoll_question_set`, `archive_exitpoll_question_set`, `create_exitpoll_hook`, `update_exitpoll_hook`, plus `get_exitpoll_configuration` and `get_exitpoll_question_set` for reads. Worth it when question sets must be identical across projects, or when survey definitions should live in version control.
+
+Both MCP routes need an organization API key with write access and an org- or project-admin role; read-only keys can view but not change either resource. Organization API keys are scoped to the entire organization — C3D does not currently offer per-project granularity — so a write-enabled key grants write access across every project in the org. That is a legitimate reason for a team to decline and stay on the dashboard. Do not push back on it.
+
+**Always dry-run first.** Every MCP write for both resources previews what will happen and changes nothing until confirmed. Do not skip the preview because a change looks small.
+
+Effects to flag to the developer before executing a write:
+
+- **Objectives** — `sequential` cannot be changed after save; writing steps asynchronously re-scores roughly the last 30 days of sessions and nothing older; `name` is capped at 32 characters and truncates silently. Gaze and fixation steps reference dynamic object IDs, which are per-project, so those cannot be copied between projects verbatim.
+- **ExitPoll** — question set versions are immutable, so editing a question creates a new version rather than changing the existing one. Removal is archival only; there is no hard delete. **A new version does not move existing hooks.** Hooks stay pointed at whatever version they were assigned until explicitly reassigned with `update_exitpoll_hook`, so publishing v2 and expecting the app to pick it up is a silent no-op. Hooks themselves cannot be deleted, only unassigned — and a hook with no question set assigned is skipped silently at runtime, which looks identical to a working hook from inside the app.
+
+These constraints are properties of the platform, not of the MCP — they apply to dashboard-created objectives and question sets too, and are worth stating either way.
 
 Before writing a runtime script, verify which execution path it needs to be on. If the project uses a custom event system, state machine, or visual scripting, analytics code must integrate with that system — not bypass it with a standalone MonoBehaviour.
 

@@ -25,7 +25,7 @@ Use this order of trust when answering:
 2. **Engine landing page** — e.g., Unity minimal setup guide
 3. **Release pages / repositories** — for latest versions, release notes, compatibility
 4. **Docs portal root** — when the question is broad or needs routing
-5. **API/Data and MCP docs** — for programmatic access, not instrumentation
+5. **API/Data and MCP docs** — for programmatic reads, and for objective and ExitPoll configuration writes
 
 ### Change-watch anchors (verify live before quoting)
 
@@ -116,6 +116,11 @@ Dashboard Concepts page: https://docs.cognitive3d.com/dashboard/concepts/
 
 - Unity ExitPoll: https://docs.cognitive3d.com/unity/exitpoll/
 - Dashboard ExitPoll Results: https://docs.cognitive3d.com/dashboard/exitpoll-results/
+- MCP ExitPoll tools: https://docs.cognitive3d.com/mcp-server/exitpoll/
+
+**This is a hybrid task.** The in-app trigger is code (or an Editor-placed component); the question set and hook live on the platform. Question sets are configurable **either** on the dashboard **or** via MCP — `create_exitpoll_question_set`, `archive_exitpoll_question_set`, `create_exitpoll_hook`, `update_exitpoll_hook` for writes, `get_exitpoll_configuration` and `get_exitpoll_question_set` for reads. Writes need a write-enabled organization key with an org- or project-admin role. Ask which route the team wants rather than assuming.
+
+Two failure modes worth naming up front: question set versions are immutable, so an edit creates a new version and **existing hooks stay on the old one** until reassigned with `update_exitpoll_hook`; and a hook with no question set assigned is skipped silently at runtime rather than erroring. See Step 7 in SKILL.md.
 
 ### "How do I control runtime behavior remotely?"
 
@@ -128,6 +133,15 @@ Dashboard Concepts page: https://docs.cognitive3d.com/dashboard/concepts/
 - Firewall settings: https://docs.cognitive3d.com/firewall/
 - Privacy language: https://docs.cognitive3d.com/legal/
 
+### "How do I create or change objectives?"
+
+- MCP objective tools: https://docs.cognitive3d.com/mcp-server/objectives/
+- Objective concepts and step types: https://docs.cognitive3d.com/dashboard/creating-objectives/
+
+**This is a platform task, not a code task, and there are two routes.** The dashboard needs no API key and suits teams where a non-developer owns objectives, or who would rather not have a write-enabled key in circulation. The MCP server (`create_objective`, `update_objective`, `delete_objective`) needs a write-enabled organization key and suits teams who want definitions version-controlled or staging and production kept in exact parity. Ask which the team wants rather than assuming.
+
+See Step 7 in SKILL.md for route selection and for the platform constraints that apply either way — `sequential` immutability, the ~30-day re-scoring window, the 32-character name cap — plus the MCP-specific dry-run step. ExitPoll question sets have the same two routes; see "How do I ask users questions in-app?" above.
+
 ### "How do I access data programmatically?"
 
 - API/Data get started: https://docs.cognitive3d.com/api/get-started/
@@ -136,7 +150,7 @@ Dashboard Concepts page: https://docs.cognitive3d.com/dashboard/concepts/
 ### "How do I expose Cognitive3D to an AI client or MCP?"
 
 - MCP getting started: https://docs.cognitive3d.com/mcp-server/getting-started/
-- Note: MCP is a data/tool access layer, not the SDK instrumentation layer. Config details are highly freshness-sensitive.
+- Note: MCP is a data and configuration layer, not the SDK instrumentation layer — it cannot instrument the app, but it can read project data and **write objectives and ExitPoll configuration**. Config details are highly freshness-sensitive.
 
 ---
 
