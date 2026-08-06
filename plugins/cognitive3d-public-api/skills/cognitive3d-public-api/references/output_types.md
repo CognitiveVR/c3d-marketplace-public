@@ -113,7 +113,7 @@ With 1 dimension, the output is a value per bucket and each bucket is defined by
 
 Let's make a request that aggregates the average app performance by session duration. We'll produce a histogram with 10-minute intervals of session duration. That's the `600000` (10 minutes in milliseconds) you will see in the inputs.
 
-> **Note:** these examples aggregate `c3d.metrics.app_performance`, which is now deprecated — sessions from current SDK/backend versions store a constant `50` in it (you can spot one such bucket in the `json0_keyed` example below). The examples are kept because they teach the output *shapes*, which are unchanged; for real queries substitute `c3d.metrics.fps_score`.
+> **Note:** these examples aggregate `c3d.metrics.app_performance`, which is now deprecated — sessions from current SDK/backend versions store a constant `50` in it (you can spot one such bucket in the `json0_keyed` example below). The examples are kept because they teach the output *shapes*, which are unchanged; for real queries substitute `c3d.metrics.fps_score` (present on recent sessions; sessions predating its rollout may lack it).
 
 ### Output Type "legacy"
 

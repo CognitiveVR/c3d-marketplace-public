@@ -138,9 +138,9 @@ Use this decision tree when the user describes what they want:
 POST /v0/datasets/sessions/paginatedListQueries
 {
   "entityFilters": {
-    "projectId": "<int>",
+    "projectId": <int>,     // JSON number — a quoted string is rejected with 400
     "sceneId": "<uuid>",    // optional
-    "versionId": "<int>"    // optional
+    "versionId": <int>      // optional
   },
   "page": 0,
   "limit": 20,
@@ -190,7 +190,7 @@ Response array has `name` (friendly) and `sdkId` (UUID) fields. Match on `name`,
 6. **Never guess property names** — property paths (e.g. `c3d.app.version`, `c3d.session_tag.test`) are not intuitive enough to infer. Before using a property in a query, either look it up in `slicer_fields.yaml` or discover it via `POST /v0/datasets/sessions/slicerPropertyNameQueries` (see `slicer_api_guide.md`). The built-in field names listed in this file (like `date`, `duration`, `sessionId`) are safe to use directly — it's the property `path` values that must be verified.
 7. **Always make HTTP requests sequentially, never in parallel** — When running queries across multiple projects, sessions, or endpoints, execute requests one at a time. Do not fire parallel requests even if asked to query "all projects" or collate data across many resources. This avoids rate limiting and ensures predictable behavior.
 8. **`entityFilters.projectId` must be a JSON number** — `{"projectId": 240}`, never `{"projectId": "240"}`; a quoted string is rejected with a 400.
-9. **Always set both `gte` and `lte` date bounds in slicer queries** — an open-ended range (e.g. `gte` only) can 502 on projects with a lot of data.
+9. **Always set both `gte` and `lte` date bounds in slicer queries** — an open-ended range (e.g. `gte` only) has been observed to 502 on projects with a lot of data. This is about making the bounds explicit, not narrowing them: choose bounds that span your whole period of interest (a `gte` at or before the project's creation date is fine).
 
 ---
 

@@ -15,9 +15,9 @@ Body:
 ```json
 {
   "entityFilters": {
-    "projectId": "<int>",
+    "projectId": <int>,      // JSON number — a quoted string is rejected with 400
     "sceneId": "<uuid>",     // optional
-    "versionId": "<int>"     // optional
+    "versionId": <int>       // optional
   },
   "page": 0,
   "limit": 20,
@@ -144,8 +144,8 @@ Key fields to know:
 - `tags` — array of tag objects (empty if none applied)
 - `properties` — flat key/value map of all session properties. Property name prefixes:
   - `c3d.participant.*` — participant metadata
-  - `c3d.device.*` — hardware info as reported by the SDK (free-form strings)
-  - `c3d.device.derived.*` — canonical device classification added by backend enrichment: `category`, `family`, `model_family`, `model`, `runtime_host` (lowercase snake_case slugs from a versioned taxonomy — see `slicer_fields.yaml` for the full vocabulary), plus `taxonomy_version`. Absent on sessions recorded before the enrichment pipeline was deployed.
+  - `c3d.device.*` — hardware info as reported by the SDK (mostly free-form strings, but a few sub-fields are typed: `c3d.device.memory` is numeric and `c3d.device.eyetracking.enabled` / `c3d.device.controllerinputs.enabled` are boolean — check `slicer_fields.yaml` before filtering)
+  - `c3d.device.derived.*` — canonical device classification added by backend enrichment: `category`, `family`, `model_family`, `model`, `runtime_host` (lowercase snake_case slugs from a versioned taxonomy — `slicer_fields.yaml` lists the closed enums for `category` and `runtime_host` in full, plus example slugs for the others), plus `taxonomy_version`. Absent on sessions recorded before the enrichment pipeline was deployed.
   - `c3d.app.*` — app/SDK info
   - `c3d.geo.*` — geolocation
   - `c3d.metrics.*` — computed XR wellness/performance scores (floats, 0–100 scale)
@@ -752,7 +752,7 @@ Organization level access required.
 ```
 `isDefault: true` tags are system tags (test, junk, Crash, LowMemory). Custom tags have an `organizationId`. `/tags/all` returns the same structure but includes additional inherited entries.
 
-**No org-level aggregate analytics endpoint exists.** `GET /v0/organizations/:organizationId` returns metadata and the project list only — it does not return monthly session counts or other aggregates (a `stats.session_count_by_month` field that once existed is no longer returned; verified absent on both environments 2026-08-05). To aggregate analytics across an organization, run one slicer query per project and combine the results client-side. Run them sequentially, and always set **both** `gte` and `lte` date bounds — open-ended date ranges can 502 on projects with a lot of data.
+**No org-level aggregate analytics endpoint is documented.** `GET /v0/organizations/:organizationId` does not return monthly session counts or other aggregates (a `stats.session_count_by_month` field that once existed is no longer returned; verified absent on both environments 2026-08-05). To aggregate analytics across an organization, run one slicer query per project and combine the results client-side. Run them sequentially, and set **both** `gte` and `lte` date bounds explicitly — open-ended date ranges have been observed to 502 on projects with a lot of data. Explicit bounds should still span your whole period of interest (a `gte` at or before the project's creation date is fine).
 
 ---
 
@@ -807,7 +807,7 @@ Key fields: `objectiveVersions[].id` is the `objectiveVersionId` used in session
 GET /v0/versions/:versionId/objectives/:objectiveId
 GET /v0/versions/:versionId/sessions/:sessionId/objectiveData
 GET /v0/versions/:versionId/objectiveVersions/:objectiveVersionId/stepResults?excludeJunkAndTest=true
-    // Returns: [{ step, succeeded, failed, averageStepCompletionTime, averageStepDuration }]
+    // Returns (when it doesn't 404 — see warning below): [{ step, succeeded, failed, averageStepCompletionTime, averageStepDuration }]
 GET /v0/projects/:projectId/objectiveVersions/:objectiveVersionId/results.csv?excludeJunkAndTestSessions=true&targetNewObjectives=true
 ```
 

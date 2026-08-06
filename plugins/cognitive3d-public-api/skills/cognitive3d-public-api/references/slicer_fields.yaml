@@ -643,7 +643,7 @@ session_properties:
       unit: sq_meters
       displayName: Room Size
       displayTag: User
-      legacyNames: [cvr.roomsize, c3d.roomsize]
+      legacyNames: [cvr.roomsize]
     c3d.multiplayer.maxNumberConnections:
       description: Max multiplayer connections
       displayName: Max Number Connections
