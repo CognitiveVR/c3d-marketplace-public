@@ -113,6 +113,8 @@ With 1 dimension, the output is a value per bucket and each bucket is defined by
 
 Let's make a request that aggregates the average app performance by session duration. We'll produce a histogram with 10-minute intervals of session duration. That's the `600000` (10 minutes in milliseconds) you will see in the inputs.
 
+> **Note:** these examples aggregate `c3d.metrics.app_performance`, which is now deprecated — sessions from current SDK/backend versions store a constant `50` in it (you can spot one such bucket in the `json0_keyed` example below). The examples are kept because they teach the output *shapes*, which are unchanged; for real queries substitute `c3d.metrics.fps_score`.
+
 ### Output Type "legacy"
 
 The legacy format's charting control fields now includes "xIsTimeseries" now that we have an axis; this was used to switch the chart between line and bar (or pie?) charts. The data comes in a list of objects with an x value and a y value; the y value is an array always with exactly 1 item in it for 1 dimensional data. The x value is the value of the bucket defined by your 1 slice by and the y value is the value of your aggregation's operation in that bucket.

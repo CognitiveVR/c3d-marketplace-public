@@ -204,9 +204,13 @@ Response array has `name` (friendly) and `sdkId` (UUID) fields. Match on `name`,
 5. **The slicer filter schema is non-obvious** — nested `fieldParent`/`nestedFieldName`/`path` structure for session properties vs flat `fieldName`/`fieldParent` for built-in fields. See the Slicer Query System section below.
 6. **Never guess property names** — property paths (e.g. `c3d.app.version`, `c3d.session_tag.test`) are not intuitive enough to infer. Before using a property in a query, either look it up in `references/slicer_fields.yaml` or discover it via `POST /v0/datasets/sessions/slicerPropertyNameQueries` (see `references/slicer_api_guide.md`). The built-in field names listed in this file (like `date`, `duration`, `sessionId`) are safe to use directly — it's the property `path` values that must be verified.
 
-7. **`objectiveVersionId` is NOT the objective's `id`** — Result endpoints (`objectiveResultQueries`, `objectiveStepResultQueries`, `results.csv`, `stepResults`) all take an `objectiveVersionId`, which is the `id` field inside `objectiveVersions[]`, not the top-level objective `id`. Using the wrong ID will silently return empty or mismatched results. Always fetch the correct value from `GET /v0/projects/:projectId/objectives/:objectiveId` and use `objectiveVersions[].id`. An objective can have multiple versions; use the one where `isActive: true` unless targeting a specific historical version.
+7. **`objectiveVersionId` is NOT the objective's `id`** — Result endpoints (`objectiveResultQueries`, `objectiveStepResultQueries`, `results.csv`, `stepResults`) all take an `objectiveVersionId`, which is the `id` field inside `objectiveVersions[]`, not the top-level objective `id`. Using the wrong ID will silently return empty or mismatched results. Always fetch the correct value from `GET /v0/projects/:projectId/objectives/:objectiveId` and use `objectiveVersions[].id`. An objective can have multiple versions; use the one where `isActive: true` unless targeting a specific historical version. (Note: the `stepResults` endpoint itself has been observed to 404 unconditionally — see `references/endpoints.md`; prefer `results.csv`.)
 
 8. **Always make HTTP requests sequentially, never in parallel** — When running queries across multiple projects, sessions, or endpoints, execute requests one at a time. Do not fire parallel requests even if asked to query "all projects" or collate data across many resources. This avoids rate limiting and ensures predictable behavior.
+
+9. **`entityFilters.projectId` must be a JSON number** — `{"projectId": 240}`, never `{"projectId": "240"}`; a quoted string is rejected with a 400.
+
+10. **Always set both `gte` and `lte` date bounds in slicer queries** — an open-ended range (e.g. `gte` only) can 502 on projects with a lot of data.
 
 ---
 
