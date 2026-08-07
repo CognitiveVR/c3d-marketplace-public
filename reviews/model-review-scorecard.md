@@ -92,3 +92,13 @@ label); `led_to_change=no` on every row reflects that, not rejection.
   most decision-useful (base-vs-head framing: the PR introduces the
   ambiguity it then resolves one subsection later). Docs-diff cycle;
   compare with code cycles cautiously.
+
+**Cycle 2 completion (2026-08-07)**: the user directed "fix these (or
+refute)". All four adjudicated findings re-verified against the live text —
+the truncation mechanism re-confirmed at source
+(`c3d-mcp-server src/client/objective_models.py` `_validate_text` raises
+`ObjectiveValidationError`) — none refuted, all four fixed in PR #5 commit
+9b20d72. The affected CSV rows now carry `led_to_change=yes`. The two
+findings the user did not list (`delete-objective-permanence-unflagged`
+LOW, `exact-parity-vs-per-project-ids` partial/LOW) remain unfixed and
+recorded as-is.
