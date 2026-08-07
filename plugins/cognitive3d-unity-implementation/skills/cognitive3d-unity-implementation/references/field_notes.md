@@ -30,7 +30,7 @@ Boundary tracking is equally important and equally easy to miss. You can verify 
 
 **Applies to:** all projects
 
-Exit poll hooks should be placed at the beginning and end of the experience even if the team does not have survey questions ready yet. Questions are configured on the dashboard and can be added, changed, or removed without shipping a new build. The hooks must exist in the app code.
+Exit poll hooks should be placed at the beginning and end of the experience even if the team does not have survey questions ready yet. Questions are configured on the platform — on the dashboard or programmatically via the MCP server — and can be added, changed, or removed without shipping a new build. (One caveat when changing them: editing a question set creates a new version, and existing hooks stay pointed at the old version until explicitly reassigned — see the ExitPoll effects in `SKILL.md`.) The hooks must exist in the app code.
 
 Stakeholders inevitably ask "can we survey users about X?" weeks or months after launch. If hooks are already in place, a survey can be live in minutes. Without them, it requires a code change, a new build, and a store submission.
 

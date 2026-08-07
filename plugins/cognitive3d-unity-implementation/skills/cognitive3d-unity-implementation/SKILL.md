@@ -36,7 +36,7 @@ Before recommending instrumentation or writing code, check whether the project d
 
 If such a document exists, **it wins**. Match its event naming, property casing, required-property lists, environment layout and session-tag vocabulary, even where this skill's generic recommendations differ. A team with a house standard cares more about conformance than about optimality, and a parallel scheme is worse than an imperfect one applied consistently.
 
-Where the document labels which items are Editor work and which are code, honour those labels rather than re-deriving them, and never offer to perform an Editor-only step (see rule 8).
+Where the document labels which items are Editor work and which are code, honour those labels rather than re-deriving them, and never offer to perform an Editor-only step (see rule 8). The one exception: if a label contradicts what the platform can actually do — for example, it calls something Editor work that can only be achieved in code, or vice versa — treat that as a documentation bug to raise with the team, not a rule to follow.
 
 If the project has no such document, offer to draft one. A short conventions file is the cheapest way to keep later instrumentation consistent, and it makes every future session on the project more useful.
 
@@ -281,7 +281,7 @@ When the developer asks **how** to implement something, use `references/unity_sd
 
 When routing implementation, identify whether the step is:
 
-- **Editor workflow** — add/configure components in Inspector, upload scenes, upload dynamic object meshes; also dashboard configuration when the team configures objectives or ExitPoll question sets there. Describe the steps; do not generate code, and do not offer to perform the step yourself.
+- **Editor workflow** — add/configure components in Inspector, upload scenes, upload dynamic object meshes. Describe the steps; do not generate code, and do not offer to perform the step yourself. (Objectives and ExitPoll question sets are never Editor workflow — even when the team will end up configuring them on the dashboard, classify them as a Platform task so the route question below gets asked first.)
 - **Code task** — custom events, session/participant properties, sensor recording, runtime lifecycle logic. Write or modify scripts, following the project's own conventions where they exist (rule 2).
 - **Platform task** — objectives and ExitPoll question sets live on the platform, not in the build. Both can be configured **either** on the dashboard **or** programmatically through the MCP server. Ask which route the team wants before doing either; never assume a write-enabled key exists, or that the team wants one.
 - **Hybrid** — e.g., exit polls need both a code trigger in the app and a question set configured on the platform. The hook name in the Unity call must match the platform-side hook exactly.
@@ -306,7 +306,7 @@ Both MCP routes need an organization API key with write access and an org- or pr
 
 Effects to flag to the developer before executing a write:
 
-- **Objectives** — `sequential` cannot be changed after save; writing steps asynchronously re-scores roughly the last 30 days of sessions and nothing older; `name` is capped at 32 characters and truncates silently. Gaze and fixation steps reference dynamic object IDs, which are per-project, so those cannot be copied between projects verbatim.
+- **Objectives** — `sequential` cannot be changed after save; writing steps asynchronously re-scores roughly the last 30 days of sessions and nothing older; `name` is capped at 32 characters (the MCP route rejects longer names with a validation error rather than truncating). Gaze and fixation steps reference dynamic object IDs, which are per-project, so those cannot be copied between projects verbatim.
 - **ExitPoll** — question set versions are immutable, so editing a question creates a new version rather than changing the existing one. Removal is archival only; there is no hard delete. **A new version does not move existing hooks.** Hooks stay pointed at whatever version they were assigned until explicitly reassigned with `update_exitpoll_hook`, so publishing v2 and expecting the app to pick it up is a silent no-op. Hooks themselves cannot be deleted, only unassigned — and a hook with no question set assigned is skipped silently at runtime, which looks identical to a working hook from inside the app.
 
 These constraints are properties of the platform, not of the MCP — they apply to dashboard-created objectives and question sets too, and are worth stating either way.
