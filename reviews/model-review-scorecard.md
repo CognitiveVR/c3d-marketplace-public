@@ -51,3 +51,44 @@ the CLI flag, gemini its default recorded in `~/.gemini/tmp` session logs,
 sonnet via the Agent tool alias — alias only, resolved version not recorded).
 Kiro effort is unrecoverable after the fact and was recorded at invocation
 time per protocol.
+
+## Cycle 2 — PR #5, Unity skill conventions + MCP routes (2026-08-06)
+
+Target: docs-only diff (21KB, 5 files) adding a project-conventions rule and
+two-route (dashboard/MCP) documentation for objectives and ExitPoll. Brief
+carried 12 verified facts (tool names against live docs AND the c3d-mcp-server
+origin/main registry, auth, dry-run, constraints, renumbering, URLs) —
+result: ZERO false positives on verified facts across all legs. Findings
+reported in-conversation only per instruction (public repo, no PR comment or
+label); `led_to_change=no` on every row reflects that, not rejection.
+
+- **Legs**: sonnet (`claude-sonnet-5`, Agent tool, effort not stamped in
+  session JSONL → UNRECORDED), codex (`gpt-5.6-sol`,
+  `model_reasoning_effort=high` — first cycle PINNED, rollout-verified),
+  gemini (`gemini-3.1-pro-preview-customtools`, single 27.7KB chunk, non-empty
+  verified; one earlier run lost to orchestrator shell-quoting, not a gemini
+  failure), kiro (`gpt-5.6-sol`, `--effort high`, `fs_read`), orchestrator
+  (`claude-fable-5` unmixed 67/67, effort field absent → UNRECORDED).
+- **Convergences**: `editor-vs-platform-task-category-overlap` by 3/5
+  (gemini, sonnet, orchestrator — three formed independently). The
+  kiro+codex convergence on `rule2-precedence` is NOT independent (same
+  model, different harness) — recorded as one model-family opinion; the
+  harness-controlled comparison finally ran with effort equal, and both
+  harnesses produced the same single HIGH.
+- **Sole-finders**: orchestrator 3 (`truncates-silently-false-for-mcp-route`
+  — killed by reading the MCP client validator, the cycle's only empirical
+  source-level disproof; `field-notes-stale-dashboard-only-questions` —
+  required repo access beyond the 5-file diff, the classic plain-diff blind
+  spot, and NEITHER fs_read leg went looking; `delete-objective-permanence`).
+  Gemini 1 partial (`exact-parity-vs-per-project-ids`, adjudicated LOW).
+- **Refutations/downgrades**: no leg finding fully refuted; two HIGHs
+  downgraded (rule-2 → MEDIUM: requires a mislabeled project doc, deliberate
+  design with a bounded gap; parity → LOW: caveat disclosed in-section, so
+  "contradiction" overstated). Orchestrator's own candidate (category
+  overlap) survived via independent convergence.
+- **Leg quality notes**: every external leg returned exactly ONE finding —
+  the tight brief + verified-facts section appears to suppress volume and
+  padding (cycle 1 external legs averaged 2.25). Sonnet's write-up was the
+  most decision-useful (base-vs-head framing: the PR introduces the
+  ambiguity it then resolves one subsection later). Docs-diff cycle;
+  compare with code cycles cautiously.
