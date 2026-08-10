@@ -57,7 +57,7 @@ Common examples: `role`, `department`, `site_id`, `training_level`, `cohort`, `y
 
 Use participant properties when the value should follow the person across sessions.
 
-### Objectives and dashboard setup
+### Objectives and analysis setup
 
 Good first objectives: module completion, sequential step-completion, safety-critical gaze, error-free completion, exit poll.
 
@@ -134,7 +134,7 @@ Common examples: `movement_style`, `input_mode`, `chapter_reached`, `variant`, `
 
 Use only when behavior should carry across sessions: lifetime progression, leaderboard score, total kills or wins, meta progression or skill-tree state if stable enough.
 
-### Objectives and dashboard setup
+### Objectives and analysis setup
 
 Good first objectives: FTUE completion, mission completion, required mechanic used at least once, portal or progression gate engaged.
 
@@ -210,7 +210,7 @@ Common examples: `tester_type`, `user_segment`, `cohort`, `preferred_mode` if st
 
 Track both **planned duration** (`content_duration_seconds`) and **actual duration** (`duration_seconds`). A user completing 4 of 30 minutes is very different from 28 of 30.
 
-### Objectives and dashboard setup
+### Objectives and analysis setup
 
 Good first objectives: completed first content unit, completed two or more units in one session, completed a key onboarding path, revisited content after first completion.
 
@@ -285,7 +285,7 @@ Common examples: age band, experience level, cohort, recruitment source, persona
 
 This archetype often benefits from tags because analysts may want to compare: day one vs day two, on-site vs remote, pilot vs main study, recruited segment A vs B.
 
-### Objectives and dashboard setup
+### Objectives and analysis setup
 
 Good first objectives: interacted with every required item, looked at required component before rating, completed comparison flow, completed all ratings.
 
@@ -356,7 +356,7 @@ Common examples: `condition_id`, `block_order`, `study_site`, `protocol_version`
 
 Common examples: `participant_id`, cohort/group, relevant prior experience.
 
-### Objectives and dashboard setup
+### Objectives and analysis setup
 
 Good first objectives: completed all required trials, followed required sequence, responded within timing bounds, completed questionnaire or debrief.
 

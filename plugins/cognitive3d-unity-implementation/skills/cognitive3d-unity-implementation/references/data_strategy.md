@@ -86,8 +86,8 @@ A large percentage of bad instrumentation comes from using the wrong primitive.
 | A value describes the whole session | Session property | Best for filtering, grouping, and cohort comparison |
 | A value describes the person across sessions | Participant property | Belongs on the participant profile, not inside every session |
 | Need to know what object was seen, used, moved, or fixated | Dynamic object | Adds object-level context for replay, gaze, and objectives |
-| Measure completion logic or sequences | Objective | Turns events, gaze, and survey responses into success logic |
-| Self-reported feedback or cohort questions | Exit poll | Best for sentiment, preference, confidence, and study questions |
+| Measure completion logic or sequences | Objective | Turns events, gaze, and survey responses into success logic. Created on the dashboard or programmatically via the MCP server with a write-enabled organization key |
+| Self-reported feedback or cohort questions | Exit poll | Best for sentiment, preference, confidence, and study questions. Question sets are created on the dashboard or programmatically via the MCP server with a write-enabled organization key |
 | Analyst-added grouping after the fact | Session tag | Flexible for cohorting and ad hoc study grouping |
 
 ### Event or property?
@@ -158,7 +158,7 @@ Record when these affect interpretation: hands vs controllers, VR vs WebGL, prac
 
 ### 8. Exit poll hooks early
 
-Add hooks even without final questions. Questions are dashboard-configured, no build needed. Stakeholders inevitably ask "can we survey users?" weeks after launch — hooks eliminate that bottleneck.
+Add hooks even without final questions. Questions are configured on the platform — dashboard or MCP — with no new build. Stakeholders inevitably ask "can we survey users?" weeks after launch — hooks eliminate that bottleneck.
 
 > **Field note:** See `field_notes.md` → _Exit poll hooks are nearly free — place them early_ for more.
 
