@@ -15,9 +15,9 @@ Body:
 ```json
 {
   "entityFilters": {
-    "projectId": "<int>",
+    "projectId": <int>,      // JSON number — a quoted string is rejected with 400
     "sceneId": "<uuid>",     // optional
-    "versionId": "<int>"     // optional
+    "versionId": <int>       // optional
   },
   "page": 0,
   "limit": 20,
@@ -144,7 +144,8 @@ Key fields to know:
 - `tags` — array of tag objects (empty if none applied)
 - `properties` — flat key/value map of all session properties. Property name prefixes:
   - `c3d.participant.*` — participant metadata
-  - `c3d.device.*` — hardware info
+  - `c3d.device.*` — hardware info as reported by the SDK (mostly free-form strings, but a few sub-fields are typed: `c3d.device.memory` is numeric and `c3d.device.eyetracking.enabled` / `c3d.device.controllerinputs.enabled` are boolean — check `slicer_fields.yaml` before filtering)
+  - `c3d.device.derived.*` — canonical device classification added by backend enrichment: `category`, `family`, `model_family`, `model`, `runtime_host` (lowercase snake_case slugs from a versioned taxonomy — `slicer_fields.yaml` lists the closed enums for `category` and `runtime_host` in full, plus example slugs for the others), plus `taxonomy_version`. Absent on sessions recorded before the enrichment pipeline was deployed.
   - `c3d.app.*` — app/SDK info
   - `c3d.geo.*` — geolocation
   - `c3d.metrics.*` — computed XR wellness/performance scores (floats, 0–100 scale)
@@ -653,7 +654,7 @@ PUT /v0/projects/:projectId
 
 ### Get Scene
 ```
-GET /v0/scenes/:sceneId/
+GET /v0/scenes/:sceneId
 ```
 ```json
 {
@@ -686,7 +687,7 @@ GET /v0/scenes/:sceneId/
   ]
 }
 ```
-Note: `scenes/:id` takes the UUID sceneId, not the integer versionId.
+Note: `scenes/:id` takes the UUID sceneId, not the integer versionId. Do not append a trailing slash — `GET /v0/scenes/:sceneId/` returns 404.
 
 ### List Scenes for Project
 ```
@@ -750,6 +751,8 @@ Organization level access required.
 ]
 ```
 `isDefault: true` tags are system tags (test, junk, Crash, LowMemory). Custom tags have an `organizationId`. `/tags/all` returns the same structure but includes additional inherited entries.
+
+**No org-level aggregate analytics endpoint is documented.** `GET /v0/organizations/:organizationId` does not return monthly session counts or other aggregates (a `stats.session_count_by_month` field that once existed is no longer returned; verified absent on both environments 2026-08-05). To aggregate analytics across an organization, run one slicer query per project and combine the results client-side. Run them sequentially, and set **both** `gte` and `lte` date bounds explicitly — open-ended date ranges have been observed to 502 on projects with a lot of data. Explicit bounds should still span your whole period of interest (a `gte` at or before the project's creation date is fine).
 
 ---
 
@@ -849,9 +852,11 @@ Note: `objectiveComponents` are returned in arbitrary order — always sort by `
 GET /v0/versions/:versionId/objectives/:objectiveId
 GET /v0/versions/:versionId/sessions/:sessionId/objectiveData
 GET /v0/versions/:versionId/objectiveVersions/:objectiveVersionId/stepResults?excludeJunkAndTest=true
-    // Returns: [{ step, succeeded, failed, averageStepCompletionTime, averageStepDuration }]
+    // Returns (when it doesn't 404 — see warning below): [{ step, succeeded, failed, averageStepCompletionTime, averageStepDuration }]
 GET /v0/projects/:projectId/objectiveVersions/:objectiveVersionId/results.csv?excludeJunkAndTestSessions=true&targetNewObjectives=true
 ```
+
+> ⚠️ `stepResults` has been observed returning 404 for **every** valid versionId/objectiveVersionId combination tested (development environment, 2026-08-05, 8+ combinations). If it 404s for you, fall back to `results.csv`, which reliably returns per-session, per-step rows you can aggregate yourself.
 
 > ⚠️ **`objectiveVersionId` is NOT the objective's `id`** — All result endpoints below take an `objectiveVersionId`, which comes from `objectiveVersions[].id` inside the objective, not the top-level `id`. Use `GET /v0/projects/:projectId/objectives/:objectiveId` to retrieve it and pick the entry where `isActive: true` unless targeting a specific historical version. Using the wrong ID returns empty or mismatched results with no error.
 
@@ -979,7 +984,10 @@ Returns an array of all versions of the named question set. Same structure as th
 GET  /v0/projects/:projectId/questionSets/:name/:version/responses?excludeTags=test,junk&limit=1000&page=0&orderBy=createdAt&sort=DESC&search=archived:false
 POST /v0/projects/:projectId/questionSets/:name/:version/responseDumps?search=archived:false
 POST /v0/projects/:projectId/questionSets/:name/:version/responseCountQueries
-     // Body: sessionFilters array (same format as slicerQueries)
+     // Body: an OBJECT wrapping the filters: {"sessionFilters": [...]}
+     // (filters use the same format as slicerQueries). Posting the bare
+     // array returns 400 "Invalid json". With no filtering, send
+     // {"sessionFilters": []}.
 DELETE /v0/projects/:projectId/questionSets/:questionSetName   // archives it
 ```
 

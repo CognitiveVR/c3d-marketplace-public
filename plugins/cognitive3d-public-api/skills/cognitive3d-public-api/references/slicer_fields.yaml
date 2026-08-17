@@ -397,6 +397,53 @@ session_properties:
       displayTag: Device
       computedBy: sdk
 
+    # --- Device (canonical derived classification) ---
+    # Backend enrichment writes a canonical device classification to every new
+    # session under c3d.device.derived.*. Unlike the free-form c3d.device.*
+    # strings above, values are lowercase snake_case slugs from a versioned
+    # device taxonomy, so they are stable filter/group-by targets. Sessions
+    # recorded before the enrichment pipeline was deployed lack this namespace
+    # entirely — expect partial coverage on older projects. Always query these
+    # with nestedFieldName.
+    c3d.device.derived.category:
+      description: >-
+        Canonical device category. Closed enum: console, desktop, emulator,
+        glasses, hmd, mobile, tablet, unknown. Every enum value is a valid
+        filter — a value no current device resolves to simply matches no
+        sessions.
+      computedBy: backend
+      displayName: Device Category
+      displayTag: Device
+    c3d.device.derived.family:
+      description: >-
+        Canonical device family slug, e.g. quest, pico, vive, apple_vision,
+        windows_pc. "unknown" when unresolved.
+      computedBy: backend
+      displayName: Device Family
+      displayTag: Device
+    c3d.device.derived.model_family:
+      description: >-
+        Canonical model family slug, e.g. quest_3, pico_4, hololens_2. Literal
+        "unknown" when the model family could not be resolved.
+      computedBy: backend
+      displayName: Device Model Family
+      displayTag: Device
+    c3d.device.derived.model:
+      description: >-
+        Canonical exact-model slug, e.g. quest_pro, pico_4_ultra, psvr2. Only
+        present when the exact model is resolvable (no "unknown" fallback).
+      computedBy: backend
+      displayName: Device Model
+      displayTag: Device
+    c3d.device.derived.runtime_host:
+      description: >-
+        How the app was running. Closed enum: editor, native_desktop,
+        native_mobile, native_standalone, native_tethered, web_browser, webxr,
+        unknown.
+      computedBy: backend
+      displayName: Device Runtime Host
+      displayTag: Device
+
     # --- User ---
     c3d.username:
       description: Username string
@@ -568,6 +615,15 @@ session_properties:
       displayName: Memory (GB)
       displayTag: Device
       legacyNames: [cvr.device.memory]
+    c3d.device.derived.taxonomy_version:
+      description: >-
+        Version number of the device taxonomy that produced the
+        c3d.device.derived.* classification on this session. Metadata, not an
+        analytics dimension — useful for spotting sessions classified by an
+        older taxonomy.
+      computedBy: backend
+      displayName: Device Taxonomy Version
+      displayTag: Device
 
     # --- User/Room ---
     c3d.height:
@@ -577,13 +633,17 @@ session_properties:
       displayTag: User
       legacyNames: [cvr.height]
       computedBy: sdk
-    c3d.roomsize:
-      description: Virtual/guardian room area in square meters
+    c3d.roomsizeMeters:
+      description: >-
+        Virtual/guardian room area in square meters. NOTE: this is the key
+        live session data actually uses — queries against "c3d.roomsize"
+        match no sessions (verified on production and development data
+        2026-08-05). Filter and aggregate on c3d.roomsizeMeters.
       computedBy: sdk
       unit: sq_meters
       displayName: Room Size
       displayTag: User
-      legacyNames: [cvr.roomsize, c3d.roomsizeMeters]
+      legacyNames: [cvr.roomsize]
     c3d.multiplayer.maxNumberConnections:
       description: Max multiplayer connections
       displayName: Max Number Connections
@@ -594,7 +654,12 @@ session_properties:
     # Descriptions enriched from SDK session properties database
     c3d.metrics.app_performance:
       unnested: true
-      description: Calculated from Average FPS and Lowest 1% FPS
+      description: >-
+        DEPRECATED — sessions from current SDK/backend versions store a
+        constant 50 in this property (verified live 2026-08-05), so any
+        average over it converges on 50 as older sessions age out. For a
+        meaningful 0-100 performance score use c3d.metrics.fps_score instead.
+        Historically calculated from Average FPS and Lowest 1% FPS.
       computedBy: backend
       deprecated: true
       unit: score

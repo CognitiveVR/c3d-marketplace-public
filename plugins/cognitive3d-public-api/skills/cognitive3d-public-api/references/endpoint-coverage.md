@@ -50,7 +50,7 @@ Update this table whenever a route is added, changed, or gets an example respons
 | `projects/:id/objectives/:id` | GET | ✅ | — |
 | `versions/:id/objectives/:id` | GET | ❌ | — |
 | `versions/:id/sessions/:id/objectiveData` | GET | ✅ | — |
-| `versions/:id/objectiveVersions/:id/stepResults` | GET | ✅ inline | — |
+| `versions/:id/objectiveVersions/:id/stepResults` | GET | ⚠️ observed 404 (dev, 2026-08-05) — use `results.csv` | — |
 | `projects/:id/objectiveVersions/:id/results.csv` | GET | — CSV file | `query params` |
 | `datasets/objectives/objectiveResultQueries` | POST | ✅ | `sessionFilters` |
 | `datasets/objectives/objectiveStepResultQueries` | POST | ✅ | `sessionFilters` |
