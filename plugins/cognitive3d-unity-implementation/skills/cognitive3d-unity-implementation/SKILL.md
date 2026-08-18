@@ -1,11 +1,11 @@
 ---
 name: cognitive3d-unity-implementation
-description: "Cognitive3D Unity SDK implementation strategy for client projects. Use this skill whenever someone asks about integrating Cognitive3D analytics, planning what to track, setting up the SDK in Unity, creating a tracking plan, or implementing custom events/dynamic objects/exit polls/session properties. Also use when the user mentions Cognitive3D, C3D, XR analytics, spatial analytics, or wants to instrument a VR/AR/MR application for behavioral data collection. This covers the full workflow: discovery, data strategy, phased implementation, and technical routing."
+description: "Cognitive3D Unity SDK implementation strategy for Unity projects. Use this skill whenever someone asks about integrating Cognitive3D analytics, planning what to track, setting up the SDK in Unity, creating a tracking plan, or implementing custom events/dynamic objects/exit polls/session properties. Also use when the user mentions Cognitive3D, C3D, XR analytics, spatial analytics, or wants to instrument a VR/AR/MR application for behavioral data collection. This covers the full workflow: discovery, data strategy, phased implementation, and technical routing."
 ---
 
 # Cognitive3D Unity SDK Implementation Strategy
 
-This skill guides the full workflow for implementing Cognitive3D analytics in Unity client projects — from discovery through validated instrumentation.
+This skill guides the full workflow for implementing Cognitive3D analytics in Unity projects — from discovery through validated instrumentation.
 
 ## How this skill is organized
 
@@ -29,6 +29,8 @@ This skill guides the full workflow for implementing Cognitive3D analytics in Un
 When a developer or client asks to integrate, set up, or improve Cognitive3D analytics, you must ask the **Core Discovery Questions** and wait for answers before recommending instrumentation, writing code, or editing files.
 
 Do not infer business questions from project structure alone. You may inspect the project for technical context, but that is not a substitute for discovery.
+
+**Fast path for direct technical questions.** Discovery and the progress tracker apply to planning and integration engagements. When a developer asks a specific how-do-I question ("how do I add a custom event?", "why is my material white in replay?"), skip the workflow and go straight to Step 7 (technical routing) — do not run discovery, and do not create a tracker file. If the question reveals a broader planning need, offer the full workflow rather than imposing it.
 
 ### 2. Project conventions outrank generic advice
 
@@ -231,6 +233,7 @@ Before proceeding to recommendations, create a progress tracker file for this cl
 | Object seen, used, moved, or fixated | Dynamic object |
 | Completion logic or sequences | Objective |
 | Self-reported feedback or cohort questions | Exit poll |
+| Continuous value sampled over time (physiological, performance, gameplay telemetry) | Sensor |
 | Analyst-added grouping after the fact | Session tag |
 
 For detailed guidance on event vs property and objective vs event decisions, see `references/data_strategy.md`.
@@ -265,7 +268,7 @@ Use `references/track_plan_template.md` to produce the actual recommendation.
 - Event catalog (Phase 1 events only, typically 4–8)
 - Validation checklist
 
-**Do not include code snippets in the quick plan.** The plan should describe *what* to track and *why*, not *how* to implement it. Code examples belong in Step 6 (technical routing) when the developer asks you to implement a specific item.
+**Do not include code snippets in the quick plan.** The plan should describe *what* to track and *why*, not *how* to implement it. Code examples belong in Step 7 (technical routing) when the developer asks you to implement a specific item.
 
 **Use the full plan format** when:
 
@@ -288,28 +291,16 @@ When routing implementation, identify whether the step is:
 
 #### Choosing a route for objectives and ExitPoll question sets
 
-Objectives and ExitPoll question sets are each configurable both ways, and both routes are fully supported. This is a team preference, not a best practice with one right answer.
+Both resources are configurable **either** on the dashboard **or** programmatically through the MCP server, and both routes are fully supported — this is a team preference, not a best practice with one right answer. The dashboard needs no API key and is the right default when a non-developer (analyst, researcher, instructional designer) owns the definitions, or when the team would rather not have a write-enabled key in circulation. The MCP route suits teams who want definitions version-controlled, reviewed like code, or kept in exact parity across environments.
 
-**Objectives:**
+The tool names, doc links, and full platform-constraint lists for both resources live in `references/unity_sdk_reference.md` ("How do I create or change objectives?" and "How do I ask users questions in-app?"). **Read the relevant section there before executing any write.**
 
-- **Dashboard** — https://docs.cognitive3d.com/dashboard/creating-objectives/. No API key needed. The right default when objectives are owned by an analyst, researcher or instructional designer rather than a developer; when they change rarely; or when the team would rather not have a write-enabled key in circulation. Describe the steps; do not generate code.
-- **MCP server** — `create_objective`, `update_objective`, `delete_objective`. Worth it when there are many objectives, when staging and production must match exactly, or when the team wants definitions version-controlled and reviewed like code.
+Behavioral gates — never skip these:
 
-**ExitPoll question sets and hooks:**
-
-- **Dashboard** — question set and hook creation is documented alongside the Unity integration at https://docs.cognitive3d.com/unity/exitpoll/. No API key needed. The right default when a researcher or designer owns question wording, which is common — survey copy is usually not a developer's call.
-- **MCP server** — `create_exitpoll_question_set`, `archive_exitpoll_question_set`, `create_exitpoll_hook`, `update_exitpoll_hook`, plus `get_exitpoll_configuration` and `get_exitpoll_question_set` for reads. Worth it when question sets must be identical across projects, or when survey definitions should live in version control.
-
-Both MCP routes need an organization API key with write access and an org- or project-admin role; read-only keys can view but not change either resource. Organization API keys are scoped to the entire organization — C3D does not currently offer per-project granularity — so a write-enabled key grants write access across every project in the org. That is a legitimate reason for a team to decline and stay on the dashboard. Do not push back on it.
-
-**Always dry-run first.** Every MCP write for both resources previews what will happen and changes nothing until confirmed. Do not skip the preview because a change looks small.
-
-Effects to flag to the developer before executing a write:
-
-- **Objectives** — `sequential` cannot be changed after save; writing steps asynchronously re-scores roughly the last 30 days of sessions and nothing older; `name` is capped at 32 characters (the MCP route rejects longer names with a validation error rather than truncating). Gaze and fixation steps reference dynamic object IDs, which are per-project, so those cannot be copied between projects verbatim.
-- **ExitPoll** — question set versions are immutable, so editing a question creates a new version rather than changing the existing one. Removal is archival only; there is no hard delete. **A new version does not move existing hooks.** Hooks stay pointed at whatever version they were assigned until explicitly reassigned with `update_exitpoll_hook`, so publishing v2 and expecting the app to pick it up is a silent no-op. Hooks themselves cannot be deleted, only unassigned — and a hook with no question set assigned is skipped silently at runtime, which looks identical to a working hook from inside the app.
-
-These constraints are properties of the platform, not of the MCP — they apply to dashboard-created objectives and question sets too, and are worth stating either way.
+- **Ask which route the team wants before doing either.** Never assume a write-enabled key exists, or that the team wants one.
+- MCP writes need an organization API key with write access and an org- or project-admin role. Organization keys are org-wide — C3D offers no per-project granularity — so a write-enabled key grants write access across every project in the org. That is a legitimate reason for a team to decline and stay on the dashboard. Do not push back on it.
+- **Always dry-run first.** Every MCP write for both resources previews what will happen and changes nothing until confirmed. Do not skip the preview because a change looks small.
+- **Flag the platform constraints before executing a write** — objective immutability and re-scoring behavior, the permanence of `delete_objective`, ExitPoll versioning and hook-reassignment traps. These are properties of the platform, not of the MCP — they apply to dashboard-created resources too.
 
 Before writing a runtime script, verify which execution path it needs to be on. If the project uses a custom event system, state machine, or visual scripting, analytics code must integrate with that system — not bypass it with a standalone MonoBehaviour.
 
@@ -338,6 +329,8 @@ Every plan should end with a validation plan confirming:
 - Controller and boundary tracking active
 - Custom shaders export correctly (if applicable)
 - Offline/delayed upload behavior works (if needed)
+
+**If a Cognitive3D MCP server is connected, validate programmatically as well as visually.** MCP read tools can confirm most of the checklist without leaving the conversation: recent sessions arrived for the scene, key custom events appear with the expected properties, session and participant properties are populated, sensor streams are present. Prefer read tools for verification loops — they close the implement → verify cycle directly. Never use write tools during validation.
 
 ---
 

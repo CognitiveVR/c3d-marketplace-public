@@ -88,6 +88,7 @@ A large percentage of bad instrumentation comes from using the wrong primitive.
 | Need to know what object was seen, used, moved, or fixated | Dynamic object | Adds object-level context for replay, gaze, and objectives |
 | Measure completion logic or sequences | Objective | Turns events, gaze, and survey responses into success logic. Created on the dashboard or programmatically via the MCP server with a write-enabled organization key |
 | Self-reported feedback or cohort questions | Exit poll | Best for sentiment, preference, confidence, and study questions. Question sets are created on the dashboard or programmatically via the MCP server with a write-enabled organization key |
+| Continuous value sampled over time | Sensor | Time-series charted on the session timeline; aggregates (avg/min/max) queryable. The SDK records many automatically (HMD orientation, controller ergonomics, performance, biometrics on supported hardware); custom sensors capture app-specific continuous values |
 | Analyst-added grouping after the fact | Session tag | Flexible for cohorting and ad hoc study grouping |
 
 ### Event or property?
@@ -122,7 +123,7 @@ Common properties: `activity_id`, `activity_name`, `activity_type`, `duration_se
 
 ### 2. Onboarding and first-time use
 
-Track onboarding in stages, not as one vague blob. Users often decide within the first two minutes whether to abandon an app entirely. Duration per stage, not just completion, is what reveals whether onboarding is fast enough.
+Track onboarding in stages, not as one vague blob. Duration per stage, not just completion, is what reveals whether onboarding is fast enough.
 
 > **Field note:** See `field_notes.md` → _First-time user experience and the two-minute window_ for more.
 
@@ -148,7 +149,7 @@ Set when cross-session analysis matters: shared-device training, employee progre
 
 ### 6. Dev versus production separation
 
-Sessions run in the Unity Editor are automatically excluded from major analytics on the dashboard (toggle in bottom left). For device builds during development, use a `development_mode` session property, session tag, or separate project. Without this, dashboards become noisy fast.
+For device builds during development, use a `development_mode` session property, session tag, or separate project. Without this, dashboards become noisy fast. (Editor sessions are handled differently — see the field note.)
 
 > **Field note:** See `field_notes.md` → _Editor sessions and dev/prod separation_ for more.
 
@@ -166,13 +167,13 @@ Good default positions: beginning of experience, end of module/session/content u
 
 ### 9. Controller and boundary tracking verification
 
-Single most common issue in integration reviews. Controllers should be dynamic objects (usually automatic in SDK 2.0+). Boundary tracking verified via purple icons on session detail page.
+Single most common issue in integration reviews — verify both in every validation pass, regardless of project type.
 
 > **Field note:** See `field_notes.md` → _Controller and boundary tracking verification_ for more.
 
 ### 10. Custom shader check (Unity)
 
-Custom shaders cause white materials on dashboard (GLTF exporter can't map custom properties to PBR). Check early. Create `ExportShaderProperties` script before scene upload.
+Custom shaders cause white materials on the dashboard (GLTF exporter can't map custom properties to PBR). Check early — the fix must land before scene upload.
 
 > **Field note:** See `field_notes.md` → _Custom shaders and scene upload_ for more.
 

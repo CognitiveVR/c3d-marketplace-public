@@ -1,6 +1,6 @@
 # Cognitive3D Implementation Progress Tracker
 
-> **Instructions:** Copy this template for each client project. Update status fields as work progresses. This file is designed for both human review and LLM context loading — keep entries concise and structured.
+> **Instructions:** Copy this template for each project. Update status fields as work progresses. This file is designed for both human review and LLM context loading — keep entries concise and structured.
 
 ---
 
@@ -122,9 +122,11 @@ Mesh upload is a separate step from scene upload. Adding the `DynamicObject` com
 
 ## Objectives Status
 
-| Objective | Created on Dashboard | Tested | Notes |
-|---|---|---|---|
-| | `Yes` / `No` | `Yes` / `No` | |
+Objectives can be created on the dashboard or via the MCP server — record which route the team chose.
+
+| Objective | Route | Created | Tested | Notes |
+|---|---|---|---|---|
+| | `Dashboard` / `MCP` | `Yes` / `No` | `Yes` / `No` | |
 
 ---
 

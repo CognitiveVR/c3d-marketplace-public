@@ -216,7 +216,7 @@ Suggested checklist:
 - Participant properties: Unity Participants → https://docs.cognitive3d.com/unity/participants/
 - Session properties: Unity Comprehensive Setup → https://docs.cognitive3d.com/unity/comprehensive-setup-guide/
 - Exit polls: Unity ExitPoll → https://docs.cognitive3d.com/unity/exitpoll/
-- Objectives: Dashboard Creating Objectives → https://docs.cognitive3d.com/dashboard/creating-objectives/
+- Objectives: Dashboard Creating Objectives → https://docs.cognitive3d.com/dashboard/creating-objectives/ (or via MCP server — see `unity_sdk_reference.md` for routes and constraints)
 - LMS/xAPI: Dashboard LMS → https://docs.cognitive3d.com/dashboard/lms/
 - Remote controls: Unity Remote Controls → https://docs.cognitive3d.com/unity/remote-controls/
 

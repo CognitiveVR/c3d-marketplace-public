@@ -118,9 +118,13 @@ Dashboard Concepts page: https://docs.cognitive3d.com/dashboard/concepts/
 - Dashboard ExitPoll Results: https://docs.cognitive3d.com/dashboard/exitpoll-results/
 - MCP ExitPoll tools: https://docs.cognitive3d.com/mcp-server/exitpoll/
 
-**This is a hybrid task.** The in-app trigger is code (or an Editor-placed component); the question set and hook live on the platform. Question sets are configurable **either** on the dashboard **or** via MCP — `create_exitpoll_question_set`, `archive_exitpoll_question_set`, `create_exitpoll_hook`, `update_exitpoll_hook` for writes, `get_exitpoll_configuration` and `get_exitpoll_question_set` for reads. Writes need a write-enabled organization key with an org- or project-admin role. Ask which route the team wants rather than assuming.
+**This is a hybrid task.** The in-app trigger is code (or an Editor-placed component); the question set and hook live on the platform. Question sets are configurable **either** on the dashboard **or** via MCP — `create_exitpoll_question_set`, `archive_exitpoll_question_set`, `create_exitpoll_hook`, `update_exitpoll_hook` for writes, `get_exitpoll_configuration` and `get_exitpoll_question_set` for reads. Writes need a write-enabled organization key with an org- or project-admin role. Ask which route the team wants rather than assuming (route-selection gates are in SKILL.md Step 7). The dashboard route is the right default when a researcher or designer owns question wording, which is common — survey copy is usually not a developer's call. The MCP route is worth it when question sets must be identical across projects, or when survey definitions should live in version control.
 
-Two failure modes worth naming up front: question set versions are immutable, so an edit creates a new version and **existing hooks stay on the old one** until reassigned with `update_exitpoll_hook`; and a hook with no question set assigned is skipped silently at runtime rather than erroring. See Step 7 in SKILL.md.
+**ExitPoll platform constraints — flag these to the developer before any write.** These are properties of the platform, not of the MCP; they apply to dashboard-created question sets too:
+
+- Question set versions are immutable: editing a question creates a new version rather than changing the existing one. Removal is archival only; there is no hard delete.
+- **A new version does not move existing hooks.** Hooks stay pointed at whatever version they were assigned until explicitly reassigned with `update_exitpoll_hook`, so publishing v2 and expecting the app to pick it up is a silent no-op.
+- Hooks themselves cannot be deleted, only unassigned — and a hook with no question set assigned is skipped silently at runtime, which looks identical to a working hook from inside the app.
 
 ### "How do I control runtime behavior remotely?"
 
@@ -138,9 +142,17 @@ Two failure modes worth naming up front: question set versions are immutable, so
 - MCP objective tools: https://docs.cognitive3d.com/mcp-server/objectives/
 - Objective concepts and step types: https://docs.cognitive3d.com/dashboard/creating-objectives/
 
-**This is a platform task, not a code task, and there are two routes.** The dashboard needs no API key and suits teams where a non-developer owns objectives, or who would rather not have a write-enabled key in circulation. The MCP server (`create_objective`, `update_objective`, `delete_objective`) needs a write-enabled organization key and suits teams who want definitions version-controlled or staging and production kept in exact parity. Ask which the team wants rather than assuming.
+**This is a platform task, not a code task, and there are two routes.** The dashboard needs no API key and suits teams where a non-developer owns objectives, or who would rather not have a write-enabled key in circulation. The MCP server (`create_objective`, `update_objective`, `delete_objective`) needs a write-enabled organization key and suits teams who want definitions version-controlled or staging and production kept in exact parity. Ask which the team wants rather than assuming (route-selection gates, including the always-dry-run rule, are in SKILL.md Step 7).
 
-See Step 7 in SKILL.md for route selection and for the platform constraints that apply either way — `sequential` immutability, the ~30-day re-scoring window, the 32-character name cap — plus the MCP-specific dry-run step. ExitPoll question sets have the same two routes; see "How do I ask users questions in-app?" above.
+**Objective platform constraints — flag these to the developer before any write.** These are properties of the platform, not of the MCP; they apply to dashboard-created objectives too:
+
+- `sequential` cannot be changed after save.
+- Writing steps asynchronously re-scores roughly the last 30 days of sessions and nothing older.
+- `name` is capped at 32 characters (the MCP route rejects longer names with a validation error rather than truncating).
+- Gaze and fixation steps reference dynamic object IDs, which are per-project, so objectives using them cannot be copied between projects verbatim.
+- `delete_objective` is a **permanent cascade** — the objective and its results are not recoverable. There is no archive-and-restore path. Confirm intent explicitly and prefer the dry-run preview before deleting.
+
+ExitPoll question sets have the same two routes and their own constraint list; see "How do I ask users questions in-app?" above.
 
 ### "How do I access data programmatically?"
 
