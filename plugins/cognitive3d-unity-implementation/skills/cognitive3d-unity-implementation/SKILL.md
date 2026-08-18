@@ -345,7 +345,7 @@ If the SDK is already partially integrated, do not start from scratch. Instead:
    - Do not proceed to implementation until you can answer: "how does each analytics-relevant script get called at runtime?"
 3. **Run discovery anyway.** Existing events tell you what the team tried to track. Discovery tells you what they actually need to know. These are often different.
 4. **Identify gaps, not a full rewrite.** The recommendation should focus on what to add, adjust, or remove — not a from-scratch plan that ignores existing work.
-5. **Check naming consistency.** If existing events follow a convention, match it. If they don't, recommend a migration path rather than a parallel naming scheme.
+5. **Check naming consistency and mark event status.** If existing events follow a convention, match it. If they don't, recommend a migration path rather than a parallel naming scheme. In the plan's event catalog, mark every event with the closed Status vocabulary from `references/track_plan_template.md` — `New`, `Keep`, `Amend`, `Revive`, `Replaces: …`, `Retire` — and state a break-risk decision (cut over, dual-send for one release, or leave it alone) for every replaced or retired event. Renames break every dashboard query, saved segment, and objective built on the old name, and split the historical series permanently; never propose one silently.
 
 **Important: stage the output in two steps.** First, present only the audit — what's working, what's missing, and the project classification. Then **stop and ask** the developer if they'd like you to propose improvements before presenting a plan. Do not combine the audit and the plan into a single response. This keeps the audit digestible and gives the developer a chance to correct misunderstandings before you build on them.
 
@@ -413,6 +413,7 @@ A strong recommendation should be:
 10. No validation plan
 11. Casual privacy-sensitive collection
 12. Recommending features without naming the first analysis use
+13. Silently renaming or replacing existing events without a break-risk decision
 
 ---
 

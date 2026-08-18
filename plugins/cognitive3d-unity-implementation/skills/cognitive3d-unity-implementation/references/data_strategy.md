@@ -399,3 +399,6 @@ Do not recommend audio, transcript, or demographic capture just because it is te
 
 ### 12. Recommending features without naming the first analysis use
 If you cannot describe the first objective, query, replay view, or dashboard use, the recommendation is not grounded enough.
+
+### 13. Silently renaming or replacing existing events
+Renaming an event breaks every dashboard query, saved segment, and objective built on the old name, and permanently splits the historical series — old sessions keep the old name. Every replaced or retired event needs an explicit break-risk decision: cut over, dual-send for one release, or leave it alone. See the event status column and migration map in `track_plan_template.md`.
