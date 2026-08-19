@@ -18,7 +18,7 @@ AI assistants should read this file after `playbooks.md` and before filling out 
 
 This is the single most common issue found during integration reviews.
 
-Controllers should be tracked as dynamic objects. In SDK 2.0+ this is usually automatic, but older versions or certain configurations may require manual setup. If controllers are not tracked, many built-in dashboard metrics — hand/controller height, ergonomics scoring, input tracking — will be missing or incorrect.
+Controllers should be tracked as dynamic objects. The SDK's Project Setup flow detects and tracks the HMD, tracking space, and controllers automatically by default, but SteamVR rigs require assigning the controller GameObjects manually in the Project Setup window, and older SDK versions or unusual configurations may also need manual setup. If controllers are not tracked, many built-in dashboard metrics — hand/controller height, ergonomics scoring, input tracking — will be missing or incorrect.
 
 Boundary tracking is equally important and equally easy to miss. You can verify it on any session detail page: look at the top of the page for the purple icons showing all active data streams. If boundary is missing, physical-versus-virtual movement metrics will not work.
 
@@ -30,7 +30,7 @@ Boundary tracking is equally important and equally easy to miss. You can verify 
 
 **Applies to:** all projects
 
-Exit poll hooks should be placed at the beginning and end of the experience even if the team does not have survey questions ready yet. Questions are configured on the platform — on the dashboard or programmatically via the MCP server — and can be added, changed, or removed without shipping a new build. (One caveat when changing them: editing a question set creates a new version, and existing hooks stay pointed at the old version until explicitly reassigned — see the ExitPoll effects in `SKILL.md`.) The hooks must exist in the app code.
+Exit poll hooks should be placed at the beginning and end of the experience even if the team does not have survey questions ready yet. Questions are configured on the platform — on the dashboard or programmatically via the MCP server — and can be added, changed, or removed without shipping a new build. (One caveat when changing them: editing a question set creates a new version, and existing hooks stay pointed at the old version until explicitly reassigned — see the ExitPoll platform constraints in `unity_sdk_reference.md`.) The hooks must exist in the app code.
 
 Stakeholders inevitably ask "can we survey users about X?" weeks or months after launch. If hooks are already in place, a survey can be live in minutes. Without them, it requires a code change, a new build, and a store submission.
 
@@ -108,7 +108,7 @@ For content-based experiences (classes, meditations, workouts, training modules)
 
 When a project uses custom shaders, materials will appear white on the Cognitive3D dashboard because the GLTF exporter does not know how to map custom shader properties to standard PBR. This must be handled before the scene is uploaded.
 
-Check for custom shaders early. If they are present, an `ExportShaderProperties` script needs to be created that implements the property mapping.
+Check for custom shaders early. If they are present, a shader-properties export script needs to be created: an Editor class inheriting `GLTFSceneExporter.ShaderPropertyCollection` (namespace `Cognitive3D.UnityGLTF`), placed under `Editor/GLTF`, mapping the shader's property names to PBR. The SDK ships examples to copy from — `URPShaderProperties`, `HDRPShaderProperties`, `StandardShaderProperties` — and discovers subclasses automatically via reflection; no registration step is needed. See the Custom Shaders section of https://docs.cognitive3d.com/unity/troubleshooting/.
 
 **Recommendation:** Include a custom shader check in the validation checklist for Unity projects.
 

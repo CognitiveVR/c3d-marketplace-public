@@ -15,7 +15,7 @@ A quick plan has five sections:
 1. **Project readback** — what the experience is, who it's for, what the team wants to learn, plus the selected business motion, archetype(s), and overlays.
 2. **Top questions to answer now** — the 3–5 most important questions from discovery.
 3. **Phase 1 priorities** — foundation instrumentation only, with a brief note on why this phase matters and what it unlocks.
-4. **Event catalog** — a compact table of Phase 1 events (typically 4–8 events) with properties and first analysis use.
+4. **Event catalog** — a compact table of Phase 1 events (typically 4–8 events) with properties and first analysis use. For brownfield projects, include the Status column (see section 6) — the audit's keep/amend/revive/replace decisions belong in the quick plan too, not only in a full plan.
 5. **Validation checklist** — how to confirm the data is flowing correctly.
 
 A quick plan deliberately omits Phase 2/3 recommendations, separate dynamic object tables, participant property tables, objectives sections, and exit poll question design. Those come later when the developer says "Phase 1 is validated, what's next?"
@@ -145,6 +145,32 @@ Guidelines:
 - Include `_seconds` on time fields
 - Keep only events that answer a real question
 - For a quick plan, include only Phase 1 events (typically 4–8)
+- For brownfield projects, add the **Status** column described below
+
+### Event status column (brownfield projects)
+
+When the project has existing instrumentation, add a **Status** column to the event catalog so the reviewer can see at a glance how much is genuinely new versus repaired. Greenfield plans omit the column (every row would be `New`). Use ONLY this closed vocabulary — do not invent per-project values, or plans stop being comparable across projects:
+
+| Value | Meaning |
+| --- | --- |
+| `New` | Did not exist before this plan |
+| `Keep` | Exists, fires correctly, no change |
+| `Amend` | Keeps its name, gains or changes properties |
+| `Revive` | Code exists but fires nowhere — not attached to any live scene, prefab, or execution path |
+| `Replaces: a, b, c` | Subsumes the listed existing events |
+| `Retire` | Should stop being sent |
+
+`Revive` matters because Unity projects routinely diverge between code presence and scene presence — an event script that exists in the codebase but is wired to nothing is neither `New` nor `Keep`.
+
+### Migration map
+
+When the plan has **three or more** `Replaces`/`Retire` rows, add a migration map subsection — old event → new event → break-risk decision — because multi-event `Replaces` cells become unreadable. Below that threshold, the Status cells and their notes carry it.
+
+**A break-risk decision is required for every replaced or retired event, at any volume.** Renaming an event breaks every dashboard query, saved segment, and objective built on the old name, and permanently splits the historical series — old sessions keep the old name. State one of three options per event:
+
+- **Cut over** — accept the split; rebuild queries and objectives on the new name.
+- **Dual-send for one release** — send both names during a transition build, then retire the old one.
+- **Leave it alone** — keep the existing name; consistency is not worth the break.
 
 ## 7. Dynamic object plan
 
@@ -216,7 +242,7 @@ Suggested checklist:
 - Participant properties: Unity Participants → https://docs.cognitive3d.com/unity/participants/
 - Session properties: Unity Comprehensive Setup → https://docs.cognitive3d.com/unity/comprehensive-setup-guide/
 - Exit polls: Unity ExitPoll → https://docs.cognitive3d.com/unity/exitpoll/
-- Objectives: Dashboard Creating Objectives → https://docs.cognitive3d.com/dashboard/creating-objectives/
+- Objectives: Dashboard Creating Objectives → https://docs.cognitive3d.com/dashboard/creating-objectives/ (or via MCP server — see `unity_sdk_reference.md` for routes and constraints)
 - LMS/xAPI: Dashboard LMS → https://docs.cognitive3d.com/dashboard/lms/
 - Remote controls: Unity Remote Controls → https://docs.cognitive3d.com/unity/remote-controls/
 

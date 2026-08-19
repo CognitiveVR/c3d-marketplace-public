@@ -141,3 +141,97 @@ This plan makes it possible to compare:
 - how long people spent with each item
 - whether component attention predicts rating
 - whether one condition outperformed another
+
+---
+
+## Example 4: VR puzzle adventure
+
+### Project readback
+
+- The experience is a chapter-based puzzle game with a tutorial and repeatable mechanics.
+- The users are consumers on their own headsets.
+- The team wants to fix early drop-off, find progression blockers, and learn which mechanics players actually use.
+- **Motion:** Progression and retention
+- **Archetype:** Progression loop
+- **Overlays:** Live tuning
+
+### Phase 1
+
+Priorities:
+- `session_started`, `session_ended` with `chapter_reached` and outcome
+- `tutorial_step_started`, `tutorial_step_completed` with durations
+- Dynamic objects: progression-gating portals, the core tool/weapon
+- Session properties: `movement_style`, `input_mode`, `development_mode`
+- Exit poll hooks at session end (dormant until playtests)
+
+### Phase 2
+
+Add:
+- `mission_started`, `mission_ended` with `is_completed`, `duration_seconds`
+- Recurring mechanic events with properties (not one event per mechanic variant)
+- `setting_changed` for non-default comfort/movement settings
+- Platform identity (OculusSocial / Steam ID) for review attribution
+- Objective: FTUE completion; objective: first mission completed
+
+### Phase 3
+
+Add:
+- `ui_opened` / `ui_closed` on key menus
+- Remote controls for difficulty/balance variants with a `variant` session property
+- Milestone feedback survey for playtest cohorts
+
+### Why this plan works
+
+This plan makes it possible to:
+- see exactly which tutorial step loses players, and how long each step takes
+- separate "players quit the game" from "players got stuck at a chapter"
+- measure mechanic adoption as recurring behavior, not one-time milestones
+- compare outcomes across movement styles and, later, balance variants
+
+---
+
+## Example 5: Academic experiment
+
+### Project readback
+
+- The experience is a controlled study comparing two environment conditions across repeated trials.
+- Participants are recruited subjects in a lab on shared devices.
+- The team needs trial-level data, recoverable condition assignment, and protocol-deviation visibility.
+- **Motion:** Structured research and experimentation
+- **Archetype:** Trial or condition loop
+- **Overlays:** Shared devices, cohort tags, privacy-sensitive capture
+
+### Phase 1
+
+Priorities:
+- `study_started` with `study_id`, `protocol_version`
+- `condition_assigned` with `condition_id`, `assignment_method`
+- `trial_started`, `trial_ended` with `trial_order`, `response_correct`, `response_time_seconds`
+- Participant ID set at session start (lab devices are shared)
+- Session properties: `condition_id`, `study_site`, `development_mode`
+- Dynamic objects: stimuli and fixation targets only
+- Exit poll hook at debrief
+
+### Phase 2
+
+Add:
+- `block_started` / `block_ended` for block-order analysis
+- `protocol_exception` with `exception_type`
+- `questionnaire_completed` to separate protocol steps from XR activity
+- Participant properties: cohort, counterbalancing group
+- Objective: completed all required trials
+
+### Phase 3
+
+Add:
+- Session tags for pilot vs main study, site comparisons
+- Deeper workload/comfort survey instruments
+- Export to downstream statistical analysis
+
+### Why this plan works
+
+This plan makes it possible to:
+- recover every participant's condition and trial order after the fact
+- analyze responses at trial and block level, not just study level
+- spot protocol deviations and dropouts instead of silently losing them
+- keep research governance data separate from behavioral analytics
