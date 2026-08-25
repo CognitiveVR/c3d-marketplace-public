@@ -16,9 +16,17 @@ This skill guides the full workflow for implementing Cognitive3D analytics in Un
 - **references/unity_sdk_reference.md**: Unity SDK technical knowledge and doc routing
 - **references/track_plan_template.md**: Output template with quick plan and full plan formats
 - **references/example_plans.md**: Example track plans for common project shapes
+- **references/queryable_data.md**: Generated reference — what the platform captures automatically and how custom data becomes queryable
 - **c3d-progress-tracker-template.md**: Worksheet template for tracking implementation progress per client
 
 **Read this file first.** Load reference files progressively — only when needed for the current step. Do not load all reference files at once.
+
+## Companion tools
+
+This skill works standalone, but two companions make it materially better. Mention them when relevant; never require them.
+
+- **Cognitive3D MCP server** — read tools (`list_slicer_fields`, `get_field_values`, `get_scene_sessions`, `query_data`, and others) turn validation and data questions into live lookups instead of dashboard round-trips, and objectives/ExitPoll configuration can be done programmatically (see Step 7). If the team will use AI tooling against their data, recommend setting it up: https://docs.cognitive3d.com/mcp-server/getting-started/. **The MCP and `references/queryable_data.md` answer different questions — use both.** The reference describes the platform's built-in fields with units and planning implications; `list_slicer_fields` tells you what a *specific* project actually holds, including its own custom properties and events. Confirm a field exists in the target project with the MCP; decide what is worth tracking from the reference.
+- **`cognitive3d-public-api` skill** (same marketplace) — for REST API query construction, data pipelines, and programmatic exports. Route there when the developer's question is "how do I pull this data out," not "what should I track."
 
 ---
 
@@ -244,6 +252,8 @@ Read `references/data_strategy.md` for strategy guidance. Then read only the rel
 
 Check `references/field_notes.md` for any topics relevant to the chosen archetypes and overlays.
 
+**Before finalizing, screen the plan against `references/queryable_data.md`** (and `list_slicer_fields` when an MCP server is connected, to catch project-specific fields): drop anything the platform already captures automatically — session duration, scene time, FPS, comfort, device context, geography — and make sure custom properties are typed so they are queryable (numbers as numbers). Spend the instrumentation budget on app-specific context only.
+
 **Phase 1 — Foundation:** Make the project observable.
 
 - Primary activity start/end, FTUE stages, key dynamic objects, essential session context, dev/prod separation, exit poll hooks, validation sessions
@@ -442,6 +452,7 @@ Load files in this order as needed. Do not load them all at once.
 2. **references/data_strategy.md** — when you need strategy depth (primitives, phasing, overlays, anti-patterns, business question map)
 3. **references/playbooks.md** — when you need archetype-specific recommendations (pull only the relevant playbook, not all of them)
 4. **references/field_notes.md** — when you need practitioner observations for the chosen archetypes and overlays
-5. **references/example_plans.md** — when a concrete pattern example would help
-6. **references/track_plan_template.md** — when you're ready to structure the output
-7. **references/unity_sdk_reference.md** — when the developer asks how to implement a recommendation
+5. **references/queryable_data.md** — before finalizing any plan, to screen out what the platform already captures (still read it when an MCP server is connected; use `list_slicer_fields` to confirm what the specific project holds)
+6. **references/example_plans.md** — when a concrete pattern example would help
+7. **references/track_plan_template.md** — when you're ready to structure the output
+8. **references/unity_sdk_reference.md** — when the developer asks how to implement a recommendation
