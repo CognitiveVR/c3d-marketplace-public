@@ -107,6 +107,9 @@ Use this decision tree when the user describes what they want:
 → `POST /v0/datasets/sessions/singleQueries` (scene-scoped)
 → `POST /v0/datasets/sessions/singleProjectSessionQueries` (project-scoped)
 
+**"Embed the 3D replay/scene viewer for a session"**
+→ `POST /v0/projects/:projectId/srEmbedTokens` — mints a short-lived, participant-scoped JWT to authorize `replay.cognitive3d.com` (or `replay.c3ddev.com` in dev) without exposing the org API key to the browser
+
 **"Raw gaze / fixation / event / sensor / position data for a session"**
 → `POST /v0/projects/:projectId/sessions/:sessionId/jsonRequests` with `jsonType`
   Values: `GAZE`, `FIXATION`, `EVENTS`, `DYNAMICS`, `SENSORS`, `BOUNDARY`, `ALL`

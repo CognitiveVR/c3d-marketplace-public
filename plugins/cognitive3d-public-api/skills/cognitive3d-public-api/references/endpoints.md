@@ -385,6 +385,55 @@ POST /v0/versions/:versionId/sessions/:sessionId/reportEmails
      { "sceneId": "...", "projectId": "...", "recipients": ["email@example.com"] }
 ```
 
+### Session Replay — Embed Token (SR Embed)
+```
+POST /v0/projects/:projectId/srEmbedTokens
+{
+  "participantId": "<string>",
+  "expireInMinutes": 720   // 720 is the maximum allowed
+}
+```
+
+Response:
+```json
+{
+  "token": "<jwt>",
+  "expiresAt": 1773998824802
+}
+```
+
+Mints a short-lived JWT scoped to a `participantId` (not a `sessionId` — the request body has no session field). Use this to authorize the hosted 3D replay/scene viewer (`replay.cognitive3d.com`, or `replay.c3ddev.com` in dev) from a browser without exposing the org API key, which must never leave the server. Pass the token to the viewer as `apiTokenMode=true` plus a `config` param containing `apiKey: token`, and restrict which session(s) it plays back via the viewer's own `sessionIds` query param — the token's scope is the participant, so session-level restriction is enforced by what you ask the viewer to load, not by the token itself.
+
+Requires a read/write permission org key; a read-only key returns a 403.
+
+#### Viewer URL
+
+The viewer is a separate host, driven entirely by URL query params — there is no separate "load session" call once you have the token. Load it in an iframe:
+
+```
+https://replay.cognitive3d.com/project/341?apiTokenMode=true&sessionIds=%5B%221773998824_6826c6d546130967474184c118bfbc90%22%5D&config=%7B%22apiKey%22%3A%22<jwt>%22%2C%22controlType%22%3A%22thirdPerson%22%2C%22renderConfig%22%3A%7B%22loopSession%22%3Afalse%2C%22darkModeForWidgets%22%3Atrue%2C%22eventToastEnabled%22%3Atrue%2C%22boundaryEnabled%22%3Afalse%2C%22controllerModalEnabled%22%3Afalse%7D%7D
+```
+
+Decoded query params:
+- `apiTokenMode=true` — tells the viewer to authenticate using the `apiKey` inside `config` (the minted embed JWT) instead of a logged-in dashboard session
+- `sessionIds` — JSON array of session ID strings to load, URI-encoded, e.g. `["1773998824_6826c6d546130967474184c118bfbc90"]`
+- `config` — JSON object, URI-encoded:
+  ```json
+  {
+    "apiKey": "<jwt from srEmbedTokens>",
+    "controlType": "thirdPerson",
+    "renderConfig": {
+      "loopSession": false,
+      "darkModeForWidgets": true,
+      "eventToastEnabled": true,
+      "boundaryEnabled": false,
+      "controllerModalEnabled": false
+    }
+  }
+  ```
+
+The viewer may also request its config over `postMessage` after load (`{ clientConfig: {...} }`); reply with `{ config: { ...event.data.clientConfig, apiKey } }` so it still gets the token.
+
 ---
 
 ## Analytics / Slicer

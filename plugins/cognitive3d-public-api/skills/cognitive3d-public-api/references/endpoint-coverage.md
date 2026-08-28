@@ -26,6 +26,7 @@ Update this table whenever a route is added, changed, or gets an example respons
 | `projects/:id/sessions/:id/report.pdf` | GET | — binary PDF | — |
 | `versions/:id/sessionsReport.pdf` | POST | — binary PDF | `sessionFilters` |
 | `versions/:id/sessions/:id/reportEmails` | POST | ❌ | — |
+| `projects/:id/srEmbedTokens` | POST | ✅ | — |
 | **Analytics / Slicer** | | | |
 | `datasets/sessions/slicerPropertyNameQueries` | POST | ✅ inline | `entityFilters` |
 | `datasets/sessions/slicerQueries` | POST | ✅ | `sessionFilters + slicer` |
