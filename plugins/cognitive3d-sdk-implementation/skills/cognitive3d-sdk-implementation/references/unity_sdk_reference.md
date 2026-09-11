@@ -2,6 +2,8 @@
 
 This file is a routing layer for Unity SDK implementation questions. It helps find the right live docs page quickly.
 
+For Unreal Engine load `unreal_sdk_reference.md`; for native Android XR (Kotlin apps on Jetpack XR or Meta Spatial) load `androidxr_sdk_reference.md`; for browser-based XR load `webxr_sdk_reference.md`. For cross-SDK feature parity at planning time, see `sdk_capability_matrix.md`.
+
 **Primary docs root:** https://docs.cognitive3d.com/
 
 ## How to use this file
@@ -188,7 +190,7 @@ ExitPoll question sets have the same two routes and their own constraint list; s
 - ExitPoll Survey: https://docs.cognitive3d.com/unity/exitpoll/
 - Sensors: https://docs.cognitive3d.com/unity/sensors/
 - Participants: https://docs.cognitive3d.com/unity/participants/
-- External Android Plugin: https://docs.cognitive3d.com/unity/android-plugin/
+- External Android Plugin: https://docs.cognitive3d.com/unity/android-plugin/ — a companion that adds Android device sensors to a **Unity** app on an Android headset. It is not the native Android XR SDK, which is for apps with no game engine; that is `androidxr_sdk_reference.md`.
 - Remote Controls: https://docs.cognitive3d.com/unity/remote-controls/
 - Audio Recording: https://docs.cognitive3d.com/unity/audio-recording/
 

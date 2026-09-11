@@ -2,7 +2,7 @@
 
 This file is the routing and API layer for **WebXR** implementation questions. Load it when the target project is a browser-based XR app (Three.js, Babylon.js, PlayCanvas, Wonderland Engine, Mattercraft, A-Frame, or plain WebXR/WebGL).
 
-For Unity projects load `unity_sdk_reference.md` instead; for Unreal Engine load `unreal_sdk_reference.md`. For cross-SDK feature parity at planning time, see `sdk_capability_matrix.md`.
+For Unity projects load `unity_sdk_reference.md` instead; for Unreal Engine load `unreal_sdk_reference.md`; for native Android XR load `androidxr_sdk_reference.md`. For cross-SDK feature parity at planning time, see `sdk_capability_matrix.md`.
 
 **Primary docs root:** https://docs.cognitive3d.com/
 **WebXR docs root:** https://docs.cognitive3d.com/webxr/get-started/

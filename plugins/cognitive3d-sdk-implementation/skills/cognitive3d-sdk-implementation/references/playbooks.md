@@ -4,7 +4,7 @@ Use this file **after** discovery and **after** reading `data_strategy.md`.
 
 Do not paste the whole file into the answer. Pull only the playbook or overlay sections that fit the project.
 
-**This file is SDK-neutral.** The archetypes describe the shape of an experience, not the engine it runs on. Several recommendations here are unavailable on some SDKs and frameworks, so screen the finished plan against `sdk_capability_matrix.md` before presenting it. The ones that bite most often: **dynamic objects** (Unity and Unreal, and WebXR only on Three.js and Mattercraft), **remote controls** and **multiplayer components** (Unity and Unreal; not documented for WebXR), **audio recording** and **store-platform identity** such as Oculus Social or Steam (Unity only). On **Unreal**, also check two things this file cannot know: whether the comfort, framerate and boundary metrics a playbook assumes are backed by the built-in components the team actually added, and whether numeric properties are sent from C++ rather than Blueprint, which stringifies them.
+**This file is SDK-neutral.** The archetypes describe the shape of an experience, not the engine it runs on. Several recommendations here are unavailable on some SDKs and frameworks, so screen the finished plan against `sdk_capability_matrix.md` before presenting it. The ones that bite most often: **dynamic objects** (Unity, Unreal and Android XR, and WebXR only on Three.js and Mattercraft), **remote controls** and **multiplayer components** (Unity and Unreal; not documented for Android XR or WebXR), **ExitPoll** (not documented for Android XR), **audio recording** and **store-platform identity** such as Oculus Social or Steam (Unity only). Two further checks this file cannot make for you: on **Unreal**, whether the comfort, framerate and boundary metrics a playbook assumes are backed by built-in components the team actually added, and whether numeric properties come from C++ rather than Blueprint; on **Android XR**, whether any event in the plan exceeds the ten-property cap.
 
 ## How to use this file
 
@@ -305,7 +305,7 @@ Usually relevant: cohort tags, shared-device study stations, survey-heavy flow, 
 
 - **Shared-device study stations need explicit participant ID.** Lab and kiosk setups are shared-device environments. See field note: _Shared devices: device ID is not enough_.
 - **Dynamic objects are especially high-value here.** Each prototype as a dynamic object gives gaze and fixation data tied to the specific item. See field note: _Dynamic objects: quality over quantity_.
-- **Exit polls are often essential, not optional.** Behavioral data and self-report together tell the story. Place hooks early. See field note: _Exit poll hooks are nearly free — place them early_.
+- **Exit polls are often essential, not optional.** Behavioral data and self-report together tell the story. Place hooks early. See field note: _Exit poll hooks are cheap on the engine SDKs, expensive on WebXR, and unconfirmed on Android XR_.
 
 ### Common mistakes
 
