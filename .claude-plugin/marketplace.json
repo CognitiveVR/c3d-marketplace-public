@@ -18,6 +18,12 @@
       "description": "Cognitive3D Unity SDK implementation strategy — guides discovery, data strategy, phased instrumentation, and technical routing for VR/AR/MR analytics.",
       "source": "./plugins/cognitive3d-unity-implementation",
       "category": "development"
+    },
+    {
+      "name": "cognitive3d-sdk-implementation",
+      "description": "Cognitive3D SDK implementation strategy across Unity, Unreal, visionOS, Android XR and WebXR — guides SDK identification, discovery, data strategy, phased instrumentation, and technical routing for VR/AR/MR/WebXR analytics.",
+      "source": "./plugins/cognitive3d-sdk-implementation",
+      "category": "development"
     }
   ]
 }
