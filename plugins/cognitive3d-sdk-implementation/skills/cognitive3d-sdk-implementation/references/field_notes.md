@@ -1,0 +1,200 @@
+# Cognitive3D Field Notes
+
+_Lessons from real integrations. Use these alongside the playbooks to avoid common pitfalls and catch high-leverage opportunities._
+
+This file is organized by topic, not by archetype. Some notes apply universally; others are tagged with the archetypes or overlays where they matter most.
+
+Each note carries an **Applies to** line covering archetypes and, where it differs, **SDKs**. A note with no SDK qualifier applies to every target. Skip notes tagged for an SDK the project does not use.
+
+## How to use this file
+
+After choosing your archetypes and pulling the relevant playbooks, scan the topics below for anything that applies. The playbooks tell you what to recommend. This file tells you what to watch out for and where the easy wins are.
+
+AI assistants should read this file after `playbooks.md` and before filling out `track_plan_template.md`.
+
+---
+
+## Controller and boundary tracking verification
+
+**Applies to:** all projects, all SDKs
+
+This is the single most common issue found during integration reviews.
+
+Controllers should be tracked. If they are not, many built-in dashboard metrics — hand/controller height, ergonomics scoring, input tracking — will be missing or incorrect.
+
+- **Unity:** the Project Setup flow detects and tracks the HMD, tracking space and controllers automatically by default, but SteamVR rigs require assigning the controller GameObjects manually in the Project Setup window, and older SDK versions or unusual configurations may also need manual setup.
+- **WebXR:** controller tracking follows the browser's reported input sources, so there is no rig to configure, but it fails silently when the app never enters an immersive session with controllers present, or when the adapter's per-frame `update()` is not running.
+
+Boundary tracking is equally important and equally easy to miss. You can verify it on any session detail page: look at the top of the page for the purple icons showing all active data streams. If boundary is missing, physical-versus-virtual movement metrics will not work. On WebXR there is a hard prerequisite: room-size data requires a `bounded-floor` session, so an app that requests only `local-floor` will never produce it, no matter how the SDK is configured.
+
+**Recommendation:** Always include a controller and boundary verification step in the validation checklist, regardless of project type.
+
+---
+
+## Exit poll hooks are cheap on Unity, less so on WebXR — place them early either way
+
+**Applies to:** all projects, all SDKs
+
+Exit poll hooks should be placed at the beginning and end of the experience even if the team does not have survey questions ready yet. Questions are configured on the platform — on the dashboard or programmatically via the MCP server — and can be added, changed, or removed without shipping a new build. (One caveat when changing them: editing a question set creates a new version, and existing hooks stay pointed at the old version until explicitly reassigned — see the ExitPoll platform constraints in the SDK reference.) The hook itself must exist in the app.
+
+Stakeholders inevitably ask "can we survey users about X?" weeks or months after launch. If hooks are already in place, a survey can be live in minutes. Without them, it requires a code change, a new build, and a store submission.
+
+**The in-app cost is not the same on both SDKs.** Unity ships survey UI you place in the scene. The WebXR SDK fetches the question set and submits answers but renders nothing, so a WebXR team has to build the survey UI themselves. The argument for placing hooks early is the same, but on WebXR the work is real and belongs in the plan as its own line item rather than as a footnote to a hook.
+
+**Recommendation:** Treat exit poll hooks as part of the Phase 1 foundation, not as a Phase 2 or Phase 3 addition. On WebXR, scope the survey UI alongside them.
+
+---
+
+## First-time user experience and the two-minute window
+
+**Applies to:** progression and mechanics, content and wellness, exploration and evaluation. All SDKs
+
+Users often decide within the first two minutes whether to abandon an app entirely. Getting to the spatial payoff — the moment the experience feels worth continuing — within that window is critical for long-term retention.
+
+This makes FTUE tracking one of the highest-value instrumentation investments across almost all project types. Duration per stage, not just completion, is what reveals whether onboarding is fast enough.
+
+**Recommendation:** Always track FTUE stages with durations. If the team is debating onboarding approaches, flag that this is a strong candidate for A/B testing: with remote controls on Unity, or with the app's own feature-flag mechanism on WebXR, where remote controls are not documented. Either way the requirement is that the assigned variant is recorded as a session property.
+
+---
+
+## Dev/prod separation, and what the SDK does or does not do for you
+
+**Applies to:** all projects, all SDKs
+
+**Unity:** sessions run in the Editor are automatically excluded from major analytics on the dashboard, and can be toggled back on with a button in the bottom left corner. For builds deployed to devices during development, a `development_mode` session property or a "Development" session tag is still necessary, or test sessions from sideloaded builds will pollute production dashboards.
+
+**WebXR: there is no equivalent auto-exclusion.** A developer running the app on `localhost` against a real Application Key produces sessions that are indistinguishable from production traffic. Nothing filters them, and by the time anyone notices, the dashboard already contains weeks of them and the fix is not retroactive. This makes explicit separation mandatory on WebXR, not advisory. Setting a `development_mode` session property from the build environment (`import.meta.env.DEV` or the equivalent) costs one line and solves it permanently.
+
+Some teams use a separate dashboard project for heavy testing. A session property is the simplest approach if the team wants everything in one project.
+
+**Recommendation:** Always include dev/prod separation in Phase 1. On Unity, mention the editor auto-exclusion so developers do not duplicate effort. On WebXR, state plainly that nothing is excluded for them.
+
+---
+
+## Dynamic objects: quality over quantity
+
+**Applies to:** all projects. Unity, and WebXR on Three.js and Mattercraft only
+
+Do not recommend dynamic objects on every interactable in the scene. Only add them where object-level attention or interaction data answers a real question.
+
+Objects that spawn repeatedly — individual bullets, individual hit targets, particle effects — should generally not be tracked as dynamic objects. This pollutes the object list on the dashboard and makes it difficult to find meaningful objects.
+
+Good candidates are objects where gaze, fixation, or interaction context changes how you interpret the session: tools, equipment, instruction panels, prototypes, focal environmental features.
+
+If the project needs to track spawned objects with meaningful identity, Unity uses ID Pools and WebXR registers each instance explicitly at spawn time.
+
+On WebXR the economics are harsher than on Unity. Every object needs manual tagging, explicit registration and its own mesh upload, with no batch tooling. A twenty-object list that is merely tedious in Unity is a genuine sprint on WebXR, so the "only where it answers a question" rule does more work there.
+
+**Recommendation:** When listing dynamic objects in the track plan, always state why each object is included and what question it supports.
+
+---
+
+## Platform identity: Oculus Social and Steam
+
+**Applies to:** progression and mechanics, content and wellness (consumer apps). Store identity is Unity-centric
+
+For Meta Quest apps, the Unity SDK's OculusSocial component captures platform identity (Oculus username and ID). For Steam apps, saving the Steam username as participant name and Steam ID as participant ID achieves the same thing.
+
+Platform identity enables review attribution — understanding why specific users left positive or negative reviews — and correlation with store-level metrics.
+
+WebXR apps have no store identity to draw on, so the equivalent is whatever account system the site already has: set `setParticipantId` and `setParticipantFullName` from the existing login. Where the experience is genuinely anonymous, say so in the plan and drop cross-session analysis rather than inventing a fragile browser-local identifier.
+
+**Recommendation:** Flag this for any consumer app. It pairs well with participant tracking and is easy to miss.
+
+---
+
+## Content duration: planned versus actual
+
+**Applies to:** content and wellness, performance and assessment
+
+For content-based experiences (classes, meditations, workouts, training modules), recording both the planned content duration and the actual participation duration is important. A user who completes 4 minutes of a 30-minute class is a very different signal from a user who completes 28 minutes. Without both values, you cannot distinguish the two.
+
+**Recommendation:** Include `content_duration_seconds` (planned length) and `duration_seconds` (actual time) on content lifecycle events.
+
+---
+
+## Scene export fidelity
+
+**Applies to:** all projects, all SDKs. The specific failure differs by SDK
+
+Replay is only as useful as the geometry behind it, and export problems are far cheaper to fix before the scene is uploaded than after. Check early.
+
+**Unity — custom shaders.** When a project uses custom shaders, materials appear white on the dashboard because the GLTF exporter does not know how to map custom shader properties to standard PBR. If custom shaders are present, a shader-properties export script needs to be created: an Editor class inheriting `GLTFSceneExporter.ShaderPropertyCollection` (namespace `Cognitive3D.UnityGLTF`), placed under `Editor/GLTF`, mapping the shader's property names to PBR. The SDK ships examples to copy from — `URPShaderProperties`, `HDRPShaderProperties`, `StandardShaderProperties` — and discovers subclasses automatically via reflection; no registration step is needed. See the Custom Shaders section of https://docs.cognitive3d.com/unity/troubleshooting/.
+
+**WebXR — adapter export coverage.** Export is an adapter capability, not a given. Three.js and Mattercraft export scenes and objects; PlayCanvas and Babylon do not; Wonderland exports geometry only, with no materials or textures, so replay will be untextured. Where the adapter cannot export, the team produces the glTF another way and uploads it manually, or accepts replay without geometry. Establish which of those it is before the team sees an empty scene viewer and concludes the integration is broken.
+
+**Recommendation:** Include a scene export fidelity check in the validation checklist on every project, and name the specific failure mode for the SDK in play.
+
+---
+
+## Shared devices: device ID is not enough
+
+**Applies to:** shared devices and SSO overlay
+
+In shared-device environments (enterprise training, classroom deployments, lab studies, kiosk setups), device ID alone will make every session from the same headset look like the same person.
+
+Participant ID must be set explicitly at session start. IDs typically come from SSO, a device management platform, or a manual login screen. Participant properties (role, department, site, cohort, training level) should be set at the same time.
+
+Do not store participant properties on the session. They belong on the participant profile so they follow the person across sessions.
+
+**Recommendation:** For any project where shared devices are likely, make participant identification a Phase 1 priority.
+
+---
+
+## Recurring behavior versus milestones
+
+**Applies to:** progression and mechanics, content and wellness
+
+A common mistake is only tracking one-time milestones (first achievement, first completion, first purchase) when the real question depends on repeated behavior. Mechanic usage frequency, content repeat rate, practice cadence, and tool adoption are all recurring patterns that milestones alone cannot capture.
+
+**Recommendation:** When reviewing a track plan, check whether the instrumentation captures both milestones and recurring behavior. If only milestones are present and the business questions involve frequency or habit, flag the gap.
+
+---
+
+## LMS and objective forwarding
+
+**Applies to:** performance and assessment
+
+Objectives can send completion data to external LMS platforms. Set up an LMS configuration in Organization Settings, then attach it to completion objectives.
+
+If the team mentions LMS, xAPI, or external reporting, make sure the module completion objective is designed to carry the right data for forwarding. A vague completion event without score or attempt metadata will not satisfy most LMS requirements.
+
+**Recommendation:** When LMS integration is a requirement, design the completion objective and its triggering events together so the forwarded data is useful from day one.
+
+---
+
+## Audio recording: high value, high sensitivity
+
+**Applies to:** performance and assessment (training only). Unity; not documented for WebXR
+
+Audio recording captures in-session audio aligned to the session timeline. It is valuable for training scenarios where verbal communication matters — trainees explaining procedures, giving verbal responses, or communicating with virtual patients.
+
+Audio recording requires explicit runtime permission and may require additional privacy disclosures. Do not recommend this casually.
+
+**Recommendation:** Only recommend audio capture for training use cases where verbal output is directly relevant to the assessment. Always flag the consent and governance requirements.
+
+---
+
+## Multi-scene applications and scene timing
+
+**Applies to:** all projects with multiple scenes, all SDKs
+
+If the experience transitions between scenes (common in fitness apps, training apps with multiple modules, games with level loading), each scene should be uploaded to the dashboard. On WebXR every scene also needs an entry in `allSceneData` with a real scene ID and the current version number, and the transition needs an explicit `setScene()` call; a scene that is uploaded but not declared in config produces sessions with no geometry.
+
+Scene transition timing provides natural engagement metrics — time in menu versus time in activity — without any custom instrumentation. The "Duration by Scene" dashboard widget surfaces this automatically.
+
+**Recommendation:** For multi-scene apps, include scene upload verification in the validation checklist and mention the Duration by Scene widget as a free analysis surface.
+
+---
+
+## Remote controls for live tuning
+
+**Applies to:** progression and mechanics, content and wellness (Phase 3). Unity; not documented for WebXR
+
+Games and content apps benefit from remote controls for live tuning without new builds. Common uses include difficulty scaling, spawn rates, feature flags, balance parameters, and content surfacing logic.
+
+Remote controls are a Phase 3 recommendation for most projects, but they are worth flagging early so the team designs events and properties that can be meaningfully compared across control states.
+
+**Remote controls have no page in the WebXR docs.** Verify current support before promising them to a WebXR team. In the meantime the experiment still works: a browser app almost always has its own config endpoint or feature-flag service, so let that assign the condition and record the assigned value as a session property. What matters analytically is that the condition is recoverable per session, not which system handed it out.
+
+**Recommendation:** If the team mentions A/B testing, live tuning, or balance iteration, flag remote controls early even if implementation is deferred to Phase 3. On WebXR, flag the recording requirement instead.
