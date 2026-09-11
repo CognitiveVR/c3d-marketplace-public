@@ -23,15 +23,18 @@ This is the single most common issue found during integration reviews.
 Controllers should be tracked. If they are not, many built-in dashboard metrics — hand/controller height, ergonomics scoring, input tracking — will be missing or incorrect.
 
 - **Unity:** the Project Setup flow detects and tracks the HMD, tracking space and controllers automatically by default, but SteamVR rigs require assigning the controller GameObjects manually in the Project Setup window, and older SDK versions or unusual configurations may also need manual setup.
+- **Unreal:** controllers need Dynamic Object components on the motion controller hand meshes, with Controller Type set and the Set Left Hand / Set Right Hand buttons used; spawned controllers assign the hand value in the Constructor graph. Three built-in components (Arm Length, Hand Elevation, Input Tracker) silently produce nothing until hand dynamics are configured, so verify the dynamics before blaming the components.
 - **WebXR:** controller tracking follows the browser's reported input sources, so there is no rig to configure, but it fails silently when the app never enters an immersive session with controllers present, or when the adapter's per-frame `update()` is not running.
 
-Boundary tracking is equally important and equally easy to miss. You can verify it on any session detail page: look at the top of the page for the purple icons showing all active data streams. If boundary is missing, physical-versus-virtual movement metrics will not work. On WebXR there is a hard prerequisite: room-size data requires a `bounded-floor` session, so an app that requests only `local-floor` will never produce it, no matter how the SDK is configured.
+Boundary tracking is equally important and equally easy to miss. You can verify it on any session detail page: look at the top of the page for the purple icons showing all active data streams. If boundary is missing, physical-versus-virtual movement metrics will not work.
+
+Two SDK-specific prerequisites: on **Unreal**, boundary events and room size come from built-in components that must be added, and Room Size additionally needs UE 4.27+ (or 4.26+ on Oculus/Meta). On **WebXR**, room-size data requires a `bounded-floor` session, so an app that requests only `local-floor` will never produce it, no matter how the SDK is configured.
 
 **Recommendation:** Always include a controller and boundary verification step in the validation checklist, regardless of project type.
 
 ---
 
-## Exit poll hooks are cheap on Unity, less so on WebXR — place them early either way
+## Exit poll hooks are cheap on the engine SDKs, less so on WebXR — place them early either way
 
 **Applies to:** all projects, all SDKs
 
@@ -39,9 +42,9 @@ Exit poll hooks should be placed at the beginning and end of the experience even
 
 Stakeholders inevitably ask "can we survey users about X?" weeks or months after launch. If hooks are already in place, a survey can be live in minutes. Without them, it requires a code change, a new build, and a store submission.
 
-**The in-app cost is not the same on both SDKs.** Unity ships survey UI you place in the scene. The WebXR SDK fetches the question set and submits answers but renders nothing, so a WebXR team has to build the survey UI themselves. The argument for placing hooks early is the same, but on WebXR the work is real and belongs in the plan as its own line item rather than as a footnote to a hook.
+**The in-app cost is not the same across SDKs.** Unity ships survey UI you place in the scene. Unreal ships UMG widgets and actors under Show Plugin Content, driven by three Blueprint nodes, with one easily-missed prerequisite: a **Widget Interaction component** on the player or motion controller, without which the panel renders and cannot be answered. That presents as an unresponsive survey rather than an error, and it is worth naming up front. The WebXR SDK fetches the question set and submits answers but renders nothing, so a WebXR team builds the survey UI themselves. The argument for placing hooks early is the same everywhere, but on WebXR the work is real and belongs in the plan as its own line item rather than as a footnote to a hook.
 
-**Recommendation:** Treat exit poll hooks as part of the Phase 1 foundation, not as a Phase 2 or Phase 3 addition. On WebXR, scope the survey UI alongside them.
+**Recommendation:** Treat exit poll hooks as part of the Phase 1 foundation, not as a Phase 2 or Phase 3 addition. On WebXR, scope the survey UI alongside them. On Unreal, check the Widget Interaction component during validation.
 
 ---
 
@@ -53,7 +56,7 @@ Users often decide within the first two minutes whether to abandon an app entire
 
 This makes FTUE tracking one of the highest-value instrumentation investments across almost all project types. Duration per stage, not just completion, is what reveals whether onboarding is fast enough.
 
-**Recommendation:** Always track FTUE stages with durations. If the team is debating onboarding approaches, flag that this is a strong candidate for A/B testing: with remote controls on Unity, or with the app's own feature-flag mechanism on WebXR, where remote controls are not documented. Either way the requirement is that the assigned variant is recorded as a session property.
+**Recommendation:** Always track FTUE stages with durations. If the team is debating onboarding approaches, flag that this is a strong candidate for A/B testing: with remote controls on Unity or Unreal, or with the app's own feature-flag mechanism on WebXR, where remote controls are not documented. Either way the requirement is that the assigned variant is recorded as a session property.
 
 ---
 
@@ -63,17 +66,19 @@ This makes FTUE tracking one of the highest-value instrumentation investments ac
 
 **Unity:** sessions run in the Editor are automatically excluded from major analytics on the dashboard, and can be toggled back on with a button in the bottom left corner. For builds deployed to devices during development, a `development_mode` session property or a "Development" session tag is still necessary, or test sessions from sideloaded builds will pollute production dashboards.
 
+**Unreal: editor sessions are recorded, not excluded.** Pressing Play creates a session that appears on the dashboard behind an "Editor Mode" toggle. That is visibility, not filtering, so every iteration cycle adds real sessions to the project. Treat Unreal like WebXR here rather than like Unity.
+
 **WebXR: there is no equivalent auto-exclusion.** A developer running the app on `localhost` against a real Application Key produces sessions that are indistinguishable from production traffic. Nothing filters them, and by the time anyone notices, the dashboard already contains weeks of them and the fix is not retroactive. This makes explicit separation mandatory on WebXR, not advisory. Setting a `development_mode` session property from the build environment (`import.meta.env.DEV` or the equivalent) costs one line and solves it permanently.
 
 Some teams use a separate dashboard project for heavy testing. A session property is the simplest approach if the team wants everything in one project.
 
-**Recommendation:** Always include dev/prod separation in Phase 1. On Unity, mention the editor auto-exclusion so developers do not duplicate effort. On WebXR, state plainly that nothing is excluded for them.
+**Recommendation:** Always include dev/prod separation in Phase 1. On Unity, mention the editor auto-exclusion so developers do not duplicate effort. On Unreal and WebXR, state plainly that nothing is excluded for them.
 
 ---
 
 ## Dynamic objects: quality over quantity
 
-**Applies to:** all projects. Unity, and WebXR on Three.js and Mattercraft only
+**Applies to:** all projects. Unity and Unreal, and WebXR on Three.js and Mattercraft only
 
 Do not recommend dynamic objects on every interactable in the scene. Only add them where object-level attention or interaction data answers a real question.
 
@@ -81,7 +86,7 @@ Objects that spawn repeatedly — individual bullets, individual hit targets, pa
 
 Good candidates are objects where gaze, fixation, or interaction context changes how you interpret the session: tools, equipment, instruction panels, prototypes, focal environmental features.
 
-If the project needs to track spawned objects with meaningful identity, Unity uses ID Pools and WebXR registers each instance explicitly at spawn time.
+If the project needs to track spawned objects with meaningful identity, Unity and Unreal use ID Pools and WebXR registers each instance explicitly at spawn time. On Unreal the Id Pool Asset holds a fixed array of GUIDs, so a pool smaller than the real concurrent spawn count silently drops tracking for the overflow. Ask what the actual maximum is rather than accepting a round number.
 
 On WebXR the economics are harsher than on Unity. Every object needs manual tagging, explicit registration and its own mesh upload, with no batch tooling. A twenty-object list that is merely tedious in Unity is a genuine sprint on WebXR, so the "only where it answers a question" rule does more work there.
 
@@ -98,6 +103,8 @@ For Meta Quest apps, the Unity SDK's OculusSocial component captures platform id
 Platform identity enables review attribution — understanding why specific users left positive or negative reviews — and correlation with store-level metrics.
 
 WebXR apps have no store identity to draw on, so the equivalent is whatever account system the site already has: set `setParticipantId` and `setParticipantFullName` from the existing login. Where the experience is genuinely anonymous, say so in the plan and drop cross-session analysis rather than inventing a fragile browser-local identifier.
+
+Unreal has `SetParticipantId` and `SetParticipantName` but no packaged store integration. The docs suggest a useful alternative where no login exists: isolate the participant in an empty scene before the session starts and collect identifying properties through an ExitPoll, rather than hardcoding them.
 
 **Recommendation:** Flag this for any consumer app. It pairs well with participant tracking and is easy to miss.
 
@@ -120,6 +127,8 @@ For content-based experiences (classes, meditations, workouts, training modules)
 Replay is only as useful as the geometry behind it, and export problems are far cheaper to fix before the scene is uploaded than after. Check early.
 
 **Unity — custom shaders.** When a project uses custom shaders, materials appear white on the dashboard because the GLTF exporter does not know how to map custom shader properties to standard PBR. If custom shaders are present, a shader-properties export script needs to be created: an Editor class inheriting `GLTFSceneExporter.ShaderPropertyCollection` (namespace `Cognitive3D.UnityGLTF`), placed under `Editor/GLTF`, mapping the shader's property names to PBR. The SDK ships examples to copy from — `URPShaderProperties`, `HDRPShaderProperties`, `StandardShaderProperties` — and discovers subclasses automatically via reflection; no registration step is needed. See the Custom Shaders section of https://docs.cognitive3d.com/unity/troubleshooting/.
+
+**Unreal — materials and exporter quirks.** Complex materials often do not translate, so make the diffuse output representative on its own rather than expecting the full material graph to survive. Four specific traps from the troubleshooting page: Forward Shading can crash the glTF export (disable it for the export, re-enable afterwards), TextRenderers do not export at all, skeletal meshes need UE 4.26+ for correct materials, and Metahumans need Level of Detail 0 with hair and skeletal animation unsupported. "Only Export Selected" is the fix when far too much geometry comes through.
 
 **WebXR — adapter export coverage.** Export is an adapter capability, not a given. Three.js and Mattercraft export scenes and objects; PlayCanvas and Babylon do not; Wonderland exports geometry only, with no materials or textures, so replay will be untextured. Where the adapter cannot export, the team produces the glTF another way and uploads it manually, or accepts replay without geometry. Establish which of those it is before the team sees an empty scene viewer and concludes the integration is broken.
 
@@ -165,7 +174,7 @@ If the team mentions LMS, xAPI, or external reporting, make sure the module comp
 
 ## Audio recording: high value, high sensitivity
 
-**Applies to:** performance and assessment (training only). Unity; not documented for WebXR
+**Applies to:** performance and assessment (training only). Unity; not documented for Unreal or WebXR (Unreal's ExitPoll voice panels are a narrower, separate feature that needs `DefaultEngine.ini` configuration)
 
 Audio recording captures in-session audio aligned to the session timeline. It is valuable for training scenarios where verbal communication matters — trainees explaining procedures, giving verbal responses, or communicating with virtual patients.
 
@@ -179,7 +188,11 @@ Audio recording requires explicit runtime permission and may require additional 
 
 **Applies to:** all projects with multiple scenes, all SDKs
 
-If the experience transitions between scenes (common in fitness apps, training apps with multiple modules, games with level loading), each scene should be uploaded to the dashboard. On WebXR every scene also needs an entry in `allSceneData` with a real scene ID and the current version number, and the transition needs an explicit `setScene()` call; a scene that is uploaded but not declared in config produces sessions with no geometry.
+If the experience transitions between scenes (common in fitness apps, training apps with multiple modules, games with level loading), each scene should be uploaded to the dashboard.
+
+On **WebXR** every scene also needs an entry in `allSceneData` with a real scene ID and the current version number, and the transition needs an explicit `setScene()` call; a scene that is uploaded but not declared in config produces sessions with no geometry.
+
+On **Unreal** with level streaming, only the last-loaded level holding a valid Scene Id records session data, which surprises teams whose persistent level is not the one they uploaded. Make sublevels visible during export so geometry culling does not silently drop them, and consider the documented combine strategies when several levels make one visual space.
 
 Scene transition timing provides natural engagement metrics — time in menu versus time in activity — without any custom instrumentation. The "Duration by Scene" dashboard widget surfaces this automatically.
 
@@ -189,7 +202,7 @@ Scene transition timing provides natural engagement metrics — time in menu ver
 
 ## Remote controls for live tuning
 
-**Applies to:** progression and mechanics, content and wellness (Phase 3). Unity; not documented for WebXR
+**Applies to:** progression and mechanics, content and wellness (Phase 3). Unity and Unreal; not documented for WebXR
 
 Games and content apps benefit from remote controls for live tuning without new builds. Common uses include difficulty scaling, spawn rates, feature flags, balance parameters, and content surfacing logic.
 

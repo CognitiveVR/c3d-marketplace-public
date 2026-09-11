@@ -9,8 +9,9 @@
 | Field | Value |
 |---|---|
 | **Client / Project Name** | |
-| **Target SDK** | `Unity` / `WebXR` |
-| **Engine / Framework** | Unity version, or Three.js / Mattercraft / Wonderland / PlayCanvas / Babylon / plain WebXR |
+| **Target SDK** | `Unity` / `Unreal` / `WebXR` |
+| **Engine / Framework** | Unity or Unreal version, or Three.js / Mattercraft / Wonderland / PlayCanvas / Babylon / plain WebXR |
+| **Authoring Surface** (Unreal) | `Blueprint` / `C++` / `Both` |
 | **Target Platform(s)** | |
 | **SDK Version** | |
 | **Dashboard Project URL** | |
@@ -63,7 +64,9 @@ _Capture anything unusual, constraints, or context that doesn't fit the question
 | Exit poll hooks placed | `Not started` / `In progress` / `Done` | |
 | Controller tracking verified | `Not started` / `In progress` / `Done` | |
 | Boundary tracking verified | `Not started` / `In progress` / `Done` | |
-| Scene export fidelity check | `Not started` / `N/A` / `Done` | Unity: custom shaders. WebXR: adapter export limits |
+| Scene export fidelity check | `Not started` / `N/A` / `Done` | Unity: custom shaders. Unreal: materials, Forward Shading, Metahumans. WebXR: adapter export limits |
+| Built-in components added (Unreal) | `Not started` / `N/A` / `Done` | Framerate, HMD orientation, room size, battery, boundary as the plan requires |
+| Numeric properties verified as numbers | `Not started` / `In progress` / `Done` | Unreal Blueprint events stringify values |
 | Validation session run | `Not started` / `In progress` / `Done` | |
 
 **Phase 1 blockers / notes:**
@@ -113,7 +116,7 @@ _Capture anything unusual, constraints, or context that doesn't fit the question
 
 ## Dynamic Objects Status
 
-Mesh upload is a separate step from scene upload on every SDK, and it is the step most often missed. Unity: add the `DynamicObject` component, then export and upload via **Feature Builder > Dynamic Objects**. WebXR: tag with `userData.isDynamic` and `userData.c3dId`, call `registerObjectCustomId`, add to the tracked set, then upload the mesh through the Upload Web App.
+Mesh upload is a separate step from scene upload on every SDK, and it is the step most often missed. Unity: add the `DynamicObject` component, then export and upload via **Feature Builder > Dynamic Objects**. Unreal: add the Dynamic Object Component, then export and upload via the **Dynamic Object Manager** (Cognitive3D menu > Feature Builder > Dynamic Object). WebXR: tag with `userData.isDynamic` and `userData.c3dId`, call `registerObjectCustomId`, add to the tracked set, then upload the mesh through the Upload Web App.
 
 Dynamic objects are not available on every WebXR framework. If the project is Wonderland, PlayCanvas, Babylon or plain JS, mark this whole section `N/A` and note what was used instead.
 
@@ -135,11 +138,11 @@ Objectives can be created on the dashboard or via the MCP server — record whic
 
 ## Exit Polls Status
 
-On WebXR the SDK fetches the question set but renders nothing, so the in-app survey UI is the team's own work. Track it as its own column rather than assuming the hook is the whole job.
+On WebXR the SDK fetches the question set but renders nothing, so the in-app survey UI is the team's own work. On Unreal the widgets ship, but a Widget Interaction component on the player or controller is required or the panel cannot be answered. Track the app-side work as its own column rather than assuming the hook is the whole job.
 
-| Hook Location | Hook Placed in App | Survey UI Built (WebXR) | Questions Configured | Tested | Notes |
+| Hook Location | Hook Placed in App | Survey UI / Interaction Ready | Questions Configured | Tested | Notes |
 |---|---|---|---|---|---|
-| | `Yes` / `No` | `Yes` / `No` / `N/A` | `Yes` / `No` | `Yes` / `No` | |
+| | `Yes` / `No` | `Yes` / `No` / `N/A` | `Yes` / `No` | `Yes` / `No` | WebXR: UI built. Unreal: Widget Interaction component present |
 
 ---
 
@@ -156,6 +159,8 @@ On WebXR the SDK fetches the question set but renders nothing, so the in-app sur
 | Controller tracking active | `Pass` / `Fail` / `Not tested` | | |
 | Boundary tracking active | `Pass` / `Fail` / `Not tested` | | |
 | Scene geometry exports with correct materials | `Pass` / `Fail` / `N/A` | | |
+| Numeric properties queryable as numbers | `Pass` / `Fail` / `Not tested` | | |
+| Required built-in components present (Unreal) | `Pass` / `Fail` / `N/A` | | |
 | Dev and production traffic separated | `Pass` / `Fail` / `Not tested` | | |
 | Offline upload works | `Pass` / `Fail` / `N/A` | | |
 | First analysis surface usable | `Pass` / `Fail` / `Not tested` | | |
@@ -187,7 +192,7 @@ _Keep this section updated as a 3-5 line summary of current state. This is the f
 
 ```
 Project: [name]
-SDK: [Unity | WebXR + framework]
+SDK: [Unity | Unreal + Blueprint/C++ | WebXR + framework]
 Stage: [Discovery / Phase 1 / Phase 2 / Phase 3 / Validation / Complete]
 Last action: [what was done last]
 Next action: [what needs to happen next]

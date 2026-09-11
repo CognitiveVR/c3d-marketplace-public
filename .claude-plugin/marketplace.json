@@ -21,7 +21,7 @@
     },
     {
       "name": "cognitive3d-sdk-implementation",
-      "description": "Cognitive3D SDK implementation strategy across Unity and WebXR — guides SDK identification, discovery, data strategy, phased instrumentation, and technical routing for VR/AR/MR/WebXR analytics.",
+      "description": "Cognitive3D SDK implementation strategy across Unity, Unreal and WebXR — guides SDK identification, discovery, data strategy, phased instrumentation, and technical routing for VR/AR/MR/WebXR analytics.",
       "source": "./plugins/cognitive3d-sdk-implementation",
       "category": "development"
     }

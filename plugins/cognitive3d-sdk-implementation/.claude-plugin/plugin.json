@@ -1,11 +1,31 @@
 {
   "name": "cognitive3d-sdk-implementation",
-  "description": "Cognitive3D SDK implementation strategy across Unity and WebXR — guides SDK identification, discovery, data strategy, phased instrumentation, and technical routing for VR/AR/MR/WebXR analytics.",
-  "version": "2.0.0",
+  "description": "Cognitive3D SDK implementation strategy across Unity, Unreal and WebXR — guides SDK identification, discovery, data strategy, phased instrumentation, and technical routing for VR/AR/MR/WebXR analytics.",
+  "version": "2.1.0",
   "author": {
     "name": "Cognitive3D",
     "email": "dev@cognitive3d.com"
   },
   "license": "MIT",
-  "keywords": ["cognitive3d", "c3d", "unity", "webxr", "threejs", "babylonjs", "playcanvas", "wonderland", "mattercraft", "xr", "vr", "ar", "mr", "analytics", "sdk", "implementation", "tracking"]
+  "keywords": [
+    "cognitive3d",
+    "c3d",
+    "unity",
+    "unreal",
+    "unreal-engine",
+    "webxr",
+    "threejs",
+    "babylonjs",
+    "playcanvas",
+    "wonderland",
+    "mattercraft",
+    "xr",
+    "vr",
+    "ar",
+    "mr",
+    "analytics",
+    "sdk",
+    "implementation",
+    "tracking"
+  ]
 }

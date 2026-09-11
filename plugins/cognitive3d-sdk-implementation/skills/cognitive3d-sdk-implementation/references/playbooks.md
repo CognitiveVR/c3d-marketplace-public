@@ -4,7 +4,7 @@ Use this file **after** discovery and **after** reading `data_strategy.md`.
 
 Do not paste the whole file into the answer. Pull only the playbook or overlay sections that fit the project.
 
-**This file is SDK-neutral.** The archetypes describe the shape of an experience, not the engine it runs on. Several recommendations here are unavailable on some SDKs and frameworks, so screen the finished plan against `sdk_capability_matrix.md` before presenting it. The ones that bite most often: **dynamic objects** (Unity, and WebXR only on Three.js and Mattercraft), **remote controls**, **audio recording**, **multiplayer components** and **store-platform identity** such as Oculus Social or Steam (all Unity; not documented for WebXR).
+**This file is SDK-neutral.** The archetypes describe the shape of an experience, not the engine it runs on. Several recommendations here are unavailable on some SDKs and frameworks, so screen the finished plan against `sdk_capability_matrix.md` before presenting it. The ones that bite most often: **dynamic objects** (Unity and Unreal, and WebXR only on Three.js and Mattercraft), **remote controls** and **multiplayer components** (Unity and Unreal; not documented for WebXR), **audio recording** and **store-platform identity** such as Oculus Social or Steam (Unity only). On **Unreal**, also check two things this file cannot know: whether the comfort, framerate and boundary metrics a playbook assumes are backed by the built-in components the team actually added, and whether numeric properties are sent from C++ rather than Blueprint, which stringifies them.
 
 ## How to use this file
 
@@ -47,7 +47,7 @@ Common fits: training simulation, SOP walkthrough, onboarding with formal pass/f
 
 ### Recommended dynamic objects
 
-Use for: critical tools/equipment, safety objects, instruction panels, control surfaces, target objects, objects in objectives. Only include objects where attention or interaction changes interpretation. Remember: registering the object in the app is not enough — meshes must be exported and uploaded separately from the scene (see the SDK reference for the project's target).
+Use for: critical tools/equipment, safety objects, instruction panels, control surfaces, target objects, objects in objectives. Only include objects where attention or interaction changes interpretation. Remember: registering the object in the app is not enough — meshes must be exported and uploaded separately from the scene, on every SDK (see the SDK reference for the project's target).
 
 ### Recommended session properties
 
@@ -126,7 +126,7 @@ Common fits: games, narrative adventures, puzzle apps, progression-based interac
 
 ### Recommended dynamic objects
 
-Good candidates: portals and wayfinding, core weapons or tools, tutorial targets, instruction surfaces, HUD/maps if attention matters, interactable objects that gate progression. Remember: registering the object in the app is not enough — meshes must be exported and uploaded separately from the scene (see the SDK reference for the project's target).
+Good candidates: portals and wayfinding, core weapons or tools, tutorial targets, instruction surfaces, HUD/maps if attention matters, interactable objects that gate progression. Remember: registering the object in the app is not enough — meshes must be exported and uploaded separately from the scene, on every SDK (see the SDK reference for the project's target).
 
 ### Recommended session properties
 
@@ -198,7 +198,7 @@ Common fits: fitness apps, meditation apps, music practice or instrument trainer
 
 ### Recommended dynamic objects
 
-Good candidates: instructors or trainer objects, helper objects, musical instruments or practice tools, key player UI surfaces, navigation tablets or watches, content hotspots. Remember: registering the object in the app is not enough — meshes must be exported and uploaded separately from the scene (see the SDK reference for the project's target).
+Good candidates: instructors or trainer objects, helper objects, musical instruments or practice tools, key player UI surfaces, navigation tablets or watches, content hotspots. Remember: registering the object in the app is not enough — meshes must be exported and uploaded separately from the scene, on every SDK (see the SDK reference for the project's target).
 
 ### Recommended session properties
 
@@ -273,7 +273,7 @@ Common fits: product evaluation, prototype comparison, virtual retail, showrooms
 
 ### Recommended dynamic objects
 
-Especially high-value here. Good candidates: each item/prototype, major components, packaging/label surfaces, signage, comparison surfaces. Remember: registering the object in the app is not enough — meshes must be exported and uploaded separately from the scene (see the SDK reference for the project's target).
+Especially high-value here. Good candidates: each item/prototype, major components, packaging/label surfaces, signage, comparison surfaces. Remember: registering the object in the app is not enough — meshes must be exported and uploaded separately from the scene, on every SDK (see the SDK reference for the project's target).
 
 ### Recommended session properties
 
@@ -348,7 +348,7 @@ Common fits: academic studies, UX experiments, repeated-measure protocols, pilot
 
 ### Recommended dynamic objects
 
-Good candidates: stimuli, fixation targets, key interactive objects, instruction surfaces, response surfaces. Remember: registering the object in the app is not enough — meshes must be exported and uploaded separately from the scene (see the SDK reference for the project's target).
+Good candidates: stimuli, fixation targets, key interactive objects, instruction surfaces, response surfaces. Remember: registering the object in the app is not enough — meshes must be exported and uploaded separately from the scene, on every SDK (see the SDK reference for the project's target).
 
 ### Recommended session properties
 

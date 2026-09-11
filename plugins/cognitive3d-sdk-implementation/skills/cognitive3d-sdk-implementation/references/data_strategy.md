@@ -4,7 +4,7 @@ _Stable strategy layer for deciding what to track and why._
 
 Read this file after the main SKILL.md when you need deeper guidance on primitives, phasing, overlays, naming, or anti-patterns.
 
-**This file is SDK-neutral.** Everything here describes what to track and why, and applies equally to Unity and WebXR projects. It will occasionally suggest something a particular SDK or framework cannot do, so screen the finished plan against `sdk_capability_matrix.md` before presenting it, and route implementation detail to the SDK reference for the project's target.
+**This file is SDK-neutral.** Everything here describes what to track and why, and applies equally to Unity, Unreal and WebXR projects. It will occasionally suggest something a particular SDK or framework cannot do, so screen the finished plan against `sdk_capability_matrix.md` before presenting it, and route implementation detail to the SDK reference for the project's target.
 
 ## Table of contents
 
@@ -137,11 +137,11 @@ Suggested properties: `stage_name`, `stage_order`, `duration_seconds`, `help_use
 
 Add dynamic objects only where object-level attention or interaction answers a question. Good candidates: equipment, tools, instruction surfaces, targets, prototypes, guide objects, objects used in objectives. Do not track everything — spawned objects like bullets pollute the object list.
 
-**Important:** registering an object in the app is only half the job. Dynamic object meshes must also be exported and uploaded **separately from the scene**. Without that step, objects have no visual representation in dashboard replay. Scene upload and dynamic object mesh upload are two distinct workflows on every SDK, and this is the single most commonly missed step in an integration.
+**Important:** registering an object in the app is only half the job. Dynamic object meshes must also be exported and uploaded **separately from the scene** (Unity's Feature Builder, Unreal's Dynamic Object Manager, or the WebXR Upload Web App). Without that step, objects have no visual representation in dashboard replay. Scene upload and dynamic object mesh upload are two distinct workflows on every SDK, and this is the single most commonly missed step in an integration.
 
-**Availability:** dynamic objects exist on Unity, and on WebXR only for the Three.js and Mattercraft adapters. Where they are unavailable, substitute custom events carrying an object identifier property and state in the plan what that cannot answer: dwell before action, attention without interaction, and object heatmaps. See `sdk_capability_matrix.md`.
+**Availability:** dynamic objects exist on Unity and Unreal, and on WebXR only for the Three.js and Mattercraft adapters. Where they are unavailable, substitute custom events carrying an object identifier property and state in the plan what that cannot answer: dwell before action, attention without interaction, and object heatmaps. See `sdk_capability_matrix.md`.
 
-**Objects spawned at runtime** need an identity strategy: Unity uses ID Pools; WebXR registers each instance explicitly at spawn time. Route the mechanics to the SDK reference.
+**Objects spawned at runtime** need an identity strategy: Unity and Unreal use ID Pools (Unreal's is an Id Pool Asset that must be sized to the concurrent spawn count); WebXR registers each instance explicitly at spawn time. Route the mechanics to the SDK reference.
 
 > **Field note:** See `field_notes.md` → _Dynamic objects: quality over quantity_ for more.
 
@@ -157,7 +157,7 @@ Set when cross-session analysis matters: shared-device training, employee progre
 
 For builds and deployments used during development, use a `development_mode` session property, session tag, or separate project. Without this, dashboards become noisy fast.
 
-How much this matters depends on the SDK. Unity excludes in-editor sessions from major dashboard analytics automatically, so the property mainly covers sideloaded device builds. WebXR has no equivalent exclusion: local development produces sessions indistinguishable from real ones, which makes explicit separation mandatory rather than advisory. See the field note.
+How much this matters depends on the SDK, and only Unity does any of it for you. Unity excludes in-editor sessions from major dashboard analytics automatically, so the property mainly covers sideloaded device builds. Unreal records editor sessions and shows them behind a dashboard toggle rather than filtering them out. WebXR has no equivalent concept at all: local development produces sessions indistinguishable from real ones. On Unreal and WebXR, explicit separation is mandatory rather than advisory. See the field note.
 
 > **Field note:** See `field_notes.md` → _Dev/prod separation, and what the SDK does or does not do for you_ for more.
 
@@ -169,9 +169,9 @@ Record when these affect interpretation: hands vs controllers, VR vs WebGL, prac
 
 Add hooks even without final questions. Questions are configured on the platform — dashboard or MCP — with no new build. Stakeholders inevitably ask "can we survey users?" weeks after launch — hooks eliminate that bottleneck.
 
-Scope the in-app side honestly. Unity ships survey UI you can place; the WebXR SDK fetches the question set and submits answers but renders nothing, so a WebXR exit poll includes building the survey UI. Plan it as real work rather than a hook placement.
+Scope the in-app side honestly. Unity ships survey UI you can place, and Unreal ships UMG widgets and actors plus three Blueprint nodes (though the panel is unanswerable without a Widget Interaction component on the player or controller). The WebXR SDK fetches the question set and submits answers but renders nothing, so a WebXR exit poll includes building the survey UI. Plan that as real work rather than a hook placement.
 
-> **Field note:** See `field_notes.md` → _Exit poll hooks are cheap on Unity, less so on WebXR — place them early either way_ for more.
+> **Field note:** See `field_notes.md` → _Exit poll hooks are cheap on the engine SDKs, less so on WebXR — place them early either way_ for more.
 
 Good default positions: beginning of experience, end of module/session/content unit, major milestones.
 
@@ -186,6 +186,7 @@ Single most common issue in integration reviews — verify both in every validat
 Geometry that exports badly makes replay misleading rather than merely imperfect, and the fix has to land before the scene is uploaded. Check early, and check what the project's specific toolchain does:
 
 - **Unity:** custom shaders render as white materials on the dashboard, because the GLTF exporter cannot map custom properties to PBR. A shader-properties export class is needed.
+- **Unreal:** complex materials may not translate, so the diffuse output has to be representative on its own. Forward Shading can crash the glTF export, TextRenderers do not export, and Metahumans need LOD 0 with hair and skeletal animation unsupported.
 - **WebXR:** export capability varies by adapter. Some frameworks have no scene export at all, and Wonderland exports geometry only, with no materials or textures.
 
 > **Field note:** See `field_notes.md` → _Scene export fidelity_ for more.
@@ -287,7 +288,7 @@ Goal: tune and compare.
 
 Usually includes: UI interaction detail, variant/condition tracking, remote controls / A/B support, catalog attributes, agent/conversational metrics, deeper surveys, social/multiplayer logic.
 
-Several of these are Unity-only or unconfirmed on WebXR (remote controls, multiplayer components, media, audio). Screen against `sdk_capability_matrix.md` before promising them.
+Several of these are engine-only or unconfirmed on WebXR (remote controls, multiplayer components, media, local cache). Screen against `sdk_capability_matrix.md` before promising them.
 
 Questions Phase 3 can answer: Which variant performs better? Which settings correlate with better outcomes? Which curation increases repeat use?
 
@@ -345,7 +346,7 @@ Do not assume hardware metadata alone captures the product distinction the team 
 
 Record the condition via session property, participant property, session tag, or remote control state. The important part is that the assigned condition is recoverable later. If the condition is not recorded, the experiment effectively did not happen.
 
-Where the SDK has no remote control support, the app's own config or feature-flag system assigns the condition and the plan simply records it as a session property. The requirement is on the recording, not on where the assignment came from.
+Unity and Unreal both support remote controls. Where the SDK does not, the app's own config or feature-flag system assigns the condition and the plan simply records it as a session property. The requirement is on the recording, not on where the assignment came from.
 
 ### Privacy-sensitive capture
 
@@ -422,4 +423,8 @@ Renaming an event breaks every dashboard query, saved segment, and objective bui
 
 ### 14. Letting naming diverge between SDKs
 
-When a team ships the same experience on more than one SDK, both builds report into the same project and the same queries. Divergent event names, property keys or units split every series permanently. Write the conventions once and apply them to both.
+When a team ships the same experience on more than one SDK, every build reports into the same project and the same queries. Divergent event names, property keys or units split every series permanently. Write the conventions once and apply them everywhere. Types count as well as names: a property that is numeric on one SDK and stringified on another has diverged even when the key matches.
+
+### 15. Sending numbers as strings
+
+A numeric property that arrives as text cannot be averaged, charted, bucketed or filtered numerically, and nothing on the dashboard flags it. The most common cause is Unreal's Blueprint custom event variant, which stringifies every value; the C++ variant preserves types. Check the authoring surface before assuming a numeric plan row will be queryable.

@@ -36,7 +36,7 @@ A full plan uses all 14 sections below.
 - Prefer the smallest useful set of recommendations.
 - Explain why each recommendation matters.
 - Screen every row against `sdk_capability_matrix.md` before presenting. A plan containing something the target SDK cannot do is worse than a smaller plan.
-- Route implementation detail to the SDK reference for the project's target — `unity_sdk_reference.md` or `webxr_sdk_reference.md` — and to current docs.
+- Route implementation detail to the SDK reference for the project's target — `unity_sdk_reference.md`, `unreal_sdk_reference.md` or `webxr_sdk_reference.md` — and to current docs.
 
 ---
 
@@ -48,7 +48,8 @@ A full plan uses all 14 sections below.
 - What the team wants to learn or decide
 
 **Target SDK**
-- Unity, or WebXR
+- Unity, Unreal, or WebXR
+- For Unreal, the authoring surface: Blueprint, C++, or both
 - For WebXR, the framework: Three.js, Mattercraft, Wonderland, PlayCanvas, Babylon, or plain WebXR
 - Note any capability limits this imposes on the plan, so the reader understands why something obvious is absent
 
@@ -163,11 +164,11 @@ When the project has existing instrumentation, add a **Status** column to the ev
 | `New` | Did not exist before this plan |
 | `Keep` | Exists, fires correctly, no change |
 | `Amend` | Keeps its name, gains or changes properties |
-| `Revive` | Code exists but fires nowhere — not attached to any live scene or execution path (Unity: no GameObject or prefab; WebXR: never imported, or the call site is never reached) |
+| `Revive` | Code exists but fires nowhere — not attached to any live scene or execution path (Unity: no GameObject or prefab; Unreal: an unreachable Blueprint graph or a level with no `BP_Cognitive3DActor`; WebXR: never imported, or the call site is never reached) |
 | `Replaces: a, b, c` | Subsumes the listed existing events |
 | `Retire` | Should stop being sent |
 
-`Revive` matters because instrumentation routinely diverges between code presence and execution: a Unity event script that exists in the codebase but is attached to nothing in the scene, or a WebXR module that is imported but never reached because the adapter update or the session hook was never wired. Neither is `New` and neither is `Keep`.
+`Revive` matters because instrumentation routinely diverges between code presence and execution: a Unity event script that exists in the codebase but is attached to nothing in the scene, an Unreal Blueprint node sitting in a graph nothing calls, or a WebXR module that is imported but never reached because the adapter update or the session hook was never wired. None of those is `New` and none is `Keep`.
 
 ### Migration map
 
@@ -181,7 +182,7 @@ When the plan has **three or more** `Replaces`/`Retire` rows, add a migration ma
 
 ## 7. Dynamic object plan
 
-Dynamic objects are available on Unity, and on WebXR only for the Three.js and Mattercraft adapters. If the project cannot support them, replace this section with a one-line statement of that fact plus the custom-event substitute, and say what it cannot answer.
+Dynamic objects are available on Unity and Unreal, and on WebXR only for the Three.js and Mattercraft adapters. If the project cannot support them, replace this section with a one-line statement of that fact plus the custom-event substitute, and say what it cannot answer.
 
 List the objects that should become dynamic objects and why.
 
@@ -241,27 +242,31 @@ Suggested checklist:
 - participant properties appear as expected
 - controller and boundary tracking active
 - scene geometry exports with correct materials, or the check is marked not applicable because the toolchain cannot export them
+- numeric properties arrive as numbers, not strings (check the authoring surface on Unreal)
+- any built-in components the plan depends on are present (Unreal)
 - dev and production traffic are separated
 - offline or delayed uploads work, if relevant and supported on this SDK
 - the team can name the first objective or query they will build
 
-Add the SDK-specific checks from the relevant reference file: the WebXR reference's troubleshooting quick table, or the Unity troubleshooting and project validation doc pages.
+Add the SDK-specific checks from the relevant reference file: the Unreal and WebXR references each carry a troubleshooting quick table, and the Unity reference routes to the Unity troubleshooting and project validation doc pages.
 
 ## 13. Implementation routes
 
 Include only the column for the project's target SDK.
 
-| Topic | Unity | WebXR |
-| --- | --- | --- |
-| Setup | https://docs.cognitive3d.com/unity/minimal-setup-guide/ | https://docs.cognitive3d.com/webxr/get-started/ |
-| Custom events | https://docs.cognitive3d.com/unity/customevents/ | https://docs.cognitive3d.com/webxr/events/ |
-| Dynamic objects | https://docs.cognitive3d.com/unity/dynamic-objects/ | https://docs.cognitive3d.com/webxr/dynamic-objects/ |
-| Session and participant properties | https://docs.cognitive3d.com/unity/comprehensive-setup-guide/, https://docs.cognitive3d.com/unity/participants/ | https://docs.cognitive3d.com/webxr/properties/ |
-| Sensors | https://docs.cognitive3d.com/unity/sensors/ | https://docs.cognitive3d.com/webxr/sensors/ |
-| Scenes | https://docs.cognitive3d.com/unity/scenes/ | https://docs.cognitive3d.com/webxr/scenes/ |
-| Exit polls | https://docs.cognitive3d.com/unity/exitpoll/ | https://docs.cognitive3d.com/webxr/exitpoll/ |
-| Remote controls | https://docs.cognitive3d.com/unity/remote-controls/ | not documented; verify live |
-| Framework support | n/a | https://docs.cognitive3d.com/webxr/framework-support/ |
+| Topic | Unity | Unreal | WebXR |
+| --- | --- | --- | --- |
+| Setup | https://docs.cognitive3d.com/unity/minimal-setup-guide/ | https://docs.cognitive3d.com/unreal/get-started/ | https://docs.cognitive3d.com/webxr/get-started/ |
+| Custom events | https://docs.cognitive3d.com/unity/customevents/ | https://docs.cognitive3d.com/unreal/customevents/ | https://docs.cognitive3d.com/webxr/events/ |
+| Dynamic objects | https://docs.cognitive3d.com/unity/dynamic-objects/ | https://docs.cognitive3d.com/unreal/dynamic-objects/ | https://docs.cognitive3d.com/webxr/dynamic-objects/ |
+| Session properties | https://docs.cognitive3d.com/unity/comprehensive-setup-guide/ | https://docs.cognitive3d.com/unreal/sessions/ | https://docs.cognitive3d.com/webxr/properties/ |
+| Participant properties | https://docs.cognitive3d.com/unity/participants/ | https://docs.cognitive3d.com/unreal/participants/ | https://docs.cognitive3d.com/webxr/properties/ |
+| Sensors | https://docs.cognitive3d.com/unity/sensors/ | https://docs.cognitive3d.com/unreal/sensors/ | https://docs.cognitive3d.com/webxr/sensors/ |
+| Scenes | https://docs.cognitive3d.com/unity/scenes/ | https://docs.cognitive3d.com/unreal/scenes/ | https://docs.cognitive3d.com/webxr/scenes/ |
+| Exit polls | https://docs.cognitive3d.com/unity/exitpoll/ | https://docs.cognitive3d.com/unreal/exitpoll/ | https://docs.cognitive3d.com/webxr/exitpoll/ |
+| Remote controls | https://docs.cognitive3d.com/unity/remote-controls/ | https://docs.cognitive3d.com/unreal/remote-controls/ | not documented; verify live |
+| Built-in components | https://docs.cognitive3d.com/unity/components/ | https://docs.cognitive3d.com/unreal/built-in-components/ | n/a |
+| Framework support | n/a | n/a | https://docs.cognitive3d.com/webxr/framework-support/ |
 
 SDK-independent:
 
@@ -280,4 +285,5 @@ Examples:
 - Whether the team wants one project or separate dev and prod projects
 - Whether condition assignment should live on the session or participant
 - Whether the team is ready for the full roadmap or just needs Phase 1 now
-- Whether the experience will also ship on another SDK, and whether both should report into one project
+- Whether the experience will also ship on another SDK, and whether the builds should report into one project
+- Which authoring surface carries the instrumentation, on Unreal, and whether numeric properties need a C++ path

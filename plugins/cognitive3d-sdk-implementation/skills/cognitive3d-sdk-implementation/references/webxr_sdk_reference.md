@@ -2,7 +2,7 @@
 
 This file is the routing and API layer for **WebXR** implementation questions. Load it when the target project is a browser-based XR app (Three.js, Babylon.js, PlayCanvas, Wonderland Engine, Mattercraft, A-Frame, or plain WebXR/WebGL).
 
-For Unity projects, load `unity_sdk_reference.md` instead. For cross-SDK feature parity at planning time, see `sdk_capability_matrix.md`.
+For Unity projects load `unity_sdk_reference.md` instead; for Unreal Engine load `unreal_sdk_reference.md`. For cross-SDK feature parity at planning time, see `sdk_capability_matrix.md`.
 
 **Primary docs root:** https://docs.cognitive3d.com/
 **WebXR docs root:** https://docs.cognitive3d.com/webxr/get-started/
@@ -367,7 +367,7 @@ c3d.exitpoll.sendAllAnswers([0, 1.6, -2]);           // position is optional
 c3d.exitpoll.clearQuestionSet();                     // abandon without submitting
 ```
 
-**The critical difference from Unity: the SDK does not render anything.** It fetches the question set and submits answers; presenting the questions in the scene is entirely the application's job. Unity ships prefab panels; WebXR does not. When an exit poll appears in a WebXR plan, scope the UI work explicitly, because a team reading Unity docs will assume it is free and it is not. This is the single largest effort difference between the two SDKs for an equivalent feature.
+**The critical difference from Unity: the SDK does not render anything.** It fetches the question set and submits answers; presenting the questions in the scene is entirely the application's job. Unity ships prefab panels; WebXR does not. When an exit poll appears in a WebXR plan, scope the UI work explicitly, because a team reading the Unity or Unreal docs will assume it is free and it is not. Both engine SDKs ship survey UI; WebXR is the only target where the survey is the application's to build, and this is the largest per-feature effort gap in the skill.
 
 Other constraints:
 
@@ -375,7 +375,7 @@ Other constraints:
 - `requestQuestionSet` rejects unless called after `c3d.startSession(...)` has resolved.
 - The question set clears automatically after submission.
 
-**ExitPoll platform constraints are identical to Unity's, because they are properties of the platform, not the SDK.** Flag these before any write:
+**ExitPoll platform constraints are identical across SDKs, because they are properties of the platform, not the SDK.** Flag these before any write:
 
 - Question set versions are immutable: editing creates a new version. Removal is archival only, with no hard delete.
 - **A new version does not move existing hooks.** Hooks stay on the version they were assigned until reassigned with `update_exitpoll_hook`. Publishing v2 and expecting the app to pick it up is a silent no-op.
@@ -392,7 +392,7 @@ Objectives are a platform resource and behave identically regardless of SDK.
 
 Two routes, both fully supported: the dashboard (no API key, right default when a non-developer owns definitions) or the MCP server (`create_objective`, `update_objective`, `delete_objective`, needs a write-enabled organization key). Ask which the team wants; always dry-run first.
 
-**Objective platform constraints, identical to Unity:**
+**Objective platform constraints, identical across SDKs:**
 
 - `sequential` cannot be changed after save.
 - Writing steps asynchronously re-scores roughly the last 30 days of sessions and nothing older.
@@ -495,7 +495,7 @@ Because of this, Mattercraft is the one WebXR framework where SKILL.md rule 9 (c
 
 ## Dashboard directory
 
-Dashboard surfaces are SDK-agnostic, so the entry points below are the same ones a Unity project uses. They are listed here in full so a WebXR engagement never needs to open the Unity reference. Two exceptions matter for WebXR projects:
+Dashboard surfaces are SDK-agnostic, so the entry points below are the same ones an engine project uses. They are listed here in full so a WebXR engagement never needs to open another SDK reference. Two exceptions matter for WebXR projects:
 
 - **Object Explorer and Object Details** are only populated where dynamic objects exist, so they are empty on Wonderland, PlayCanvas, Babylon and plain JS projects.
 - **App Performance** depends on the profiler, which requires the renderer to have been passed to the `C3D` constructor and is unsupported on Wonderland and Babylon.

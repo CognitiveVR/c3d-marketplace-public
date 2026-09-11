@@ -4,7 +4,9 @@ These examples are intentionally generic.
 
 They are not meant to be copied verbatim. They are meant to show what a good answer looks like after discovery. Adapt the names, events, and properties to the app's real domain language.
 
-Examples 1 to 5 are written for a fully-featured target and assume dynamic objects are available. They are not automatically WebXR-safe: Example 4 in particular leans on remote controls and store-platform identity, both Unity-only. Screen any example against `sdk_capability_matrix.md` before reusing its shape. Example 6 shows what a plan looks like once a capability limit is taken seriously rather than worked around.
+For brevity, Examples 1 to 5 omit the **Target SDK** line that a real plan must carry (see `track_plan_template.md` section 1, which requires the SDK and, on Unreal, the Blueprint-versus-C++ authoring surface). Example 6 shows it in place.
+
+Examples 1 to 5 are written for a fully-featured target and assume dynamic objects are available, so they map cleanly onto Unity and Unreal. They are not automatically WebXR-safe: Example 4 in particular leans on remote controls and store-platform identity, and store identity is Unity-only. Screen any example against `sdk_capability_matrix.md` before reusing its shape. Example 6 shows what a plan looks like once a capability limit is taken seriously rather than worked around.
 
 ---
 
