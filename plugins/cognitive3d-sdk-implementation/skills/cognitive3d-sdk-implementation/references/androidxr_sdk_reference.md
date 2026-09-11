@@ -2,7 +2,7 @@
 
 This file is the routing and API layer for **native Android XR** implementation questions: apps built in Kotlin or Java against **Android XR (Jetpack XR)** or the **Meta Spatial SDK**.
 
-For Unity load `unity_sdk_reference.md`; for Unreal Engine load `unreal_sdk_reference.md`; for browser-based XR load `webxr_sdk_reference.md`. For cross-SDK feature parity at planning time, see `sdk_capability_matrix.md`.
+For Unity load `unity_sdk_reference.md`; for Unreal Engine load `unreal_sdk_reference.md`; for native Apple Vision Pro load `visionos_sdk_reference.md`; for browser-based XR load `webxr_sdk_reference.md`. For cross-SDK feature parity at planning time, see `sdk_capability_matrix.md`.
 
 **Primary docs root:** https://docs.cognitive3d.com/
 **Android XR docs root:** https://docs.cognitive3d.com/android-xr/get-started/
@@ -60,16 +60,16 @@ This is the leanest integration in the skill. It behaves like WebXR in shape (no
 
 4. **Only FPS is captured automatically.** Controllers, hands and gaze are tracked, but the broad automatic sensor layer Unity has, and the built-in component set Unreal has, do not exist here. Anything else is `recordSensor` and your own sampling loop.
 
-5. **No editor, and no engine-side session lifecycle actor.** Configuration lives in a JSON asset, not a settings window. Scene and object geometry go through the Upload Web App, exactly as on WebXR.
+5. **No editor, and no engine-side session lifecycle actor.** Configuration lives in a JSON asset, not a settings window. Scene and object geometry go through the Upload Web App, exactly as on visionOS and WebXR.
 
-| | Unity | Unreal | Android XR | WebXR |
-| --- | --- | --- | --- | --- |
-| Authoring surface | Editor + C# | Editor + Blueprint/C++ | Kotlin or Java | JS/TS |
-| Config | Editor window | Project Settings + `.ini` | `assets/cognitive3d.json` | `settings.js` object |
-| Scene upload | in-engine | in-engine | Upload Web App | Upload Web App |
-| Automatic sensors | broad | opt-in components | **FPS only** | moderate |
-| ExitPoll | shipped UI | shipped UMG widgets | **not documented** | API only, no UI |
-| Event property limit | none documented | none documented | **10 per event** | none documented |
+| | Unity | Unreal | visionOS | Android XR | WebXR |
+| --- | --- | --- | --- | --- | --- |
+| Authoring surface | Editor + C# | Editor + Blueprint/C++ | Swift | Kotlin or Java | JS/TS |
+| Config | Editor window | Project Settings + `.ini` | code + Info.plist | `assets/cognitive3d.json` | `settings.js` object |
+| Scene upload | in-engine | in-engine | Upload Web App | Upload Web App | Upload Web App |
+| Automatic sensors | broad | opt-in components | narrow | **FPS only** | moderate |
+| ExitPoll | shipped UI | shipped UMG widgets | shipped SwiftUI views | **not documented** | API only, no UI |
+| Event property limit | none documented | none documented | none documented | **10 per event** | none documented |
 
 ---
 

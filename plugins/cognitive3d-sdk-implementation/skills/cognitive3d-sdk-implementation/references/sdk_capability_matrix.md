@@ -2,92 +2,102 @@
 
 _Load this before finalizing any plan (SKILL.md Step 5) so the plan only contains things the target SDK can actually do._
 
-This file answers one question: **is this recommendation possible on the SDK this project uses?** It does not explain how to implement anything. For that, load the SDK reference for the project's target: `unity_sdk_reference.md`, `unreal_sdk_reference.md`, `androidxr_sdk_reference.md`, or `webxr_sdk_reference.md`.
+This file answers one question: **is this recommendation possible on the SDK this project uses?** It does not explain how to implement anything. For that, load the SDK reference for the project's target: `unity_sdk_reference.md`, `unreal_sdk_reference.md`, `visionos_sdk_reference.md`, `androidxr_sdk_reference.md`, or `webxr_sdk_reference.md`.
 
 The strategy in `data_strategy.md` and the archetype playbooks in `playbooks.md` are deliberately SDK-neutral, which means they will happily suggest something the target SDK does not support. This file is the screen that catches it.
 
-**Android XR here means the native Kotlin SDK** for Jetpack XR and Meta Spatial apps, not the External Android Plugin that Unity and Unreal projects use on Android headsets.
+**Two column headings name a toolchain, not a device.** "visionOS" means a native Swift app; a Unity app shipped to Vision Pro is in the Unity column. "Android XR" means the native Kotlin SDK; a Unity or Unreal app on an Android headset is in its engine's column.
+
+---
+
+## The one hard platform limit
+
+**visionOS exposes no eye tracking to applications.** Apple does not provide eye-tracking rays to apps, so the visionOS SDK records HMD forward direction as the gaze signal. Everything downstream of that — heatmaps, dwell, gaze objectives, "what did they look at" — measures head orientation on this platform and eye attention on eye-tracked hardware elsewhere.
+
+No SDK release changes this. When a plan's core question is about eye attention and the target is Vision Pro, the answer is to reframe the question, not to instrument harder. This is the only entry in this file that is a property of the hardware platform rather than of an SDK's maturity.
 
 ---
 
 ## Primitive availability
 
-| Primitive | Unity | Unreal | Android XR | WebXR | Notes |
+| Primitive | Unity | Unreal | visionOS | Android XR | WebXR |
 | --- | --- | --- | --- | --- | --- |
-| Custom events | yes | yes | yes | yes | WebXR requires an explicit position argument; Android XR caps properties at 10 |
-| Typed event properties | yes | **C++ only** | yes | yes | Unreal's Blueprint `Send` variant stringifies every value |
-| Event property count | unlimited | unlimited | **10 per event** | unlimited | the only documented hard cap in the skill |
-| Session properties | yes | yes | yes | yes | |
-| Participant properties | yes | yes | yes | yes | |
-| Session tags | yes | yes | **not documented** | yes | analyst-applied dashboard tags work everywhere regardless |
-| Session name | yes | yes | **not documented** | yes | |
-| Sensors (custom) | yes | yes, float only | yes, float only | yes | Unreal caps at 10 Hz by default |
-| Sensors (automatic) | broad | **opt-in components** | **FPS only** | moderate | see below |
-| Dynamic objects | yes | yes | yes | **Three.js and Mattercraft only** | the biggest planning constraint on WebXR |
-| Dynamic object linked to an event | parameter | parameter | **by property convention** | parameter | Android XR spends one of its ten property slots on it |
-| ID pools for spawned objects | yes | yes | no | no | non-engine SDKs register per instance |
-| Gaze stream | yes | yes | yes, when `enable_gaze` | yes | |
-| Per-object gaze and heatmaps | yes | yes | yes | **Three.js and Mattercraft only** | follows dynamic object availability |
-| Eye-tracked fixations | yes, on supported hardware | yes, via Fixation Recorder | verify live | hardware dependent | |
-| Objectives | yes | yes | yes | yes | platform resource, SDK-independent |
-| ExitPoll | yes, UI shipped | yes, UMG widgets shipped | **not documented** | yes, but no UI provided | verify live on Android XR before planning one |
-| Scene upload | in-engine tools | in-engine tools | Upload Web App | Upload Web App | |
-| Dynamic object mesh upload | in-engine tools | Dynamic Object Manager | Upload Web App | Upload Web App | separate from scene upload on all four |
-| Remote controls | yes | yes | **not documented** | **not documented** | verify live before promising |
-| Local cache / offline upload | yes | yes | **not documented** | **not documented** | |
-| Media and 360 | yes | yes | **not documented** | **not documented** | |
-| Multiplayer | yes, components | yes, Lobby IDs | **not documented** | `setLobbyId` only | Unity ships Netcode and Normcore integrations |
-| Audio recording | yes | **not documented** | **not documented** | **not documented** | |
-| Active Session View | yes | yes | **not documented** | no | |
-| Ready Room | yes | no | no | no | Unity-only onboarding scene |
-| LMS forwarding | yes | yes | yes | yes | configured on the dashboard, SDK-independent |
+| Custom events | yes | yes | yes | yes | yes |
+| Typed event properties | yes | **C++ only** | **no, string-only** | yes | yes |
+| Event property count | unlimited | unlimited | unlimited | **10 per event** | unlimited |
+| Event duration | yes | yes | yes, by deferring send | verify live | yes |
+| Session properties | yes | yes | yes, typed | yes | yes |
+| Participant properties | yes | yes | yes | yes | yes |
+| Session tags | yes | yes | **not documented** | **not documented** | yes |
+| Session name | yes | yes | **not documented** | **not documented** | yes |
+| Sensors (custom) | yes | yes, float only | verify live | yes, float only | yes |
+| Sensors (automatic) | broad | **opt-in components** | narrow, see below | **FPS only** | moderate |
+| Dynamic objects | yes | yes | yes | yes | **Three.js and Mattercraft only** |
+| Dynamic object linked to an event | parameter | parameter | parameter | **by property convention** | parameter |
+| ID pools for spawned objects | yes | yes | no | no | no |
+| Gaze stream | yes | yes | yes, **head direction only** | yes, when `enable_gaze` | yes |
+| Per-object gaze and heatmaps | yes | yes | yes, head-direction based | yes | **Three.js and Mattercraft only** |
+| Eye-tracked fixations | yes, on supported hardware | yes, via Fixation Recorder | **never, platform restriction** | verify live | hardware dependent |
+| Objectives | yes | yes | yes | yes | yes |
+| ExitPoll | yes, UI shipped | yes, UMG widgets shipped | **yes, SwiftUI views shipped** | **not documented** | yes, but no UI provided |
+| ExitPoll offline | verify live | verify live | **yes, question sets cached** | n/a | no |
+| Scene upload | in-engine tools | in-engine tools | Upload Web App | Upload Web App | Upload Web App |
+| Dynamic object mesh upload | in-engine tools | Dynamic Object Manager | Upload Web App | Upload Web App | Upload Web App |
+| Local cache / offline upload | yes | yes | **yes, well specified** | **not documented** | **not documented** |
+| Remote controls | yes | yes | **not documented** | **not documented** | **not documented** |
+| Media and 360 | yes | yes | **not documented** | **not documented** | **not documented** |
+| Multiplayer | yes, components | yes, Lobby IDs | **not documented** | **not documented** | `setLobbyId` only |
+| Audio recording | yes | **not documented** | ExitPoll voice only | **not documented** | **not documented** |
+| Active Session View | yes | yes | **not documented** | **not documented** | no |
+| Ready Room | yes | no | no | no | no |
+| LMS forwarding | yes | yes | yes | yes | yes |
 
-"Not documented" means the feature has no page in that SDK's docs section. Treat it as unavailable for planning purposes, and verify live before telling a team either way. This matters most on Android XR, which is the newest SDK and has the smallest documentation set, so absence there is weaker evidence than absence elsewhere.
+"Not documented" means the feature has no page in that SDK's docs section. Treat it as unavailable for planning purposes, and verify live before telling a team either way. Absence is weakest evidence on the newest SDKs, visionOS and Android XR.
 
 ---
 
 ## Automatic capture differences
 
-All four SDKs capture some base layer with no instrumentation (see `queryable_data.md`, which is written from Unity's behaviour). Where they differ:
+All five SDKs capture some base layer with no instrumentation (see `queryable_data.md`, which is written from Unity's behaviour). Where they differ:
 
-| Automatic capture | Unity | Unreal | Android XR | WebXR |
-| --- | --- | --- | --- | --- |
-| Session lifecycle events | yes | yes | yes | yes |
-| Head and controller pose | yes | yes | yes | yes |
-| Hands | yes | yes | yes | yes |
-| Gaze | yes | yes, via Player Tracker | yes, when `enable_gaze` | yes |
-| HMD orientation | yes | **component** | verify live | yes |
-| FPS | yes | **component** | yes | yes |
-| Boundary / room size | yes | **component** | verify live | only in a `bounded-floor` session |
-| Controller tracking loss | yes | **component** | verify live | yes |
-| Battery | yes | **component** | verify live | no |
-| Hand and arm ergonomics | yes | **component**, plus hand dynamics | verify live | partial |
-| Draw calls, memory, main thread time | yes | no | no | only when the renderer is passed to the `C3D` constructor |
-| Biometrics (HP Omnicept, HarmonEyes) | yes, on supported hardware | sensor API, integration dependent | no | no |
-| Editor sessions excluded from dashboards | yes | **no, recorded behind a toggle** | **no equivalent** | **no equivalent** |
+| Automatic capture | Unity | Unreal | visionOS | Android XR | WebXR |
+| --- | --- | --- | --- | --- | --- |
+| Session lifecycle events | yes | yes | yes | yes | yes |
+| Head pose / position | yes | yes | yes | yes | yes |
+| Head pitch | yes | **component** | yes | verify live | yes |
+| Head yaw | yes | **component** | **v1.0.1+, off by default** | verify live | yes |
+| Head roll | yes | verify live | **not recorded** | verify live | verify live |
+| Gaze | yes | yes, via Player Tracker | yes, **head direction** | yes, when enabled | yes |
+| Hands | yes | yes | yes, when `isHandTrackingRequired` | yes | yes |
+| Controllers | yes | yes | n/a, no controllers | yes | yes |
+| FPS | yes | **component** | yes | yes | yes |
+| Battery | yes | **component** | yes | verify live | no |
+| Participant height | verify live | **component** | **yes, `c3d.participant.height`** | verify live | no |
+| Boundary / room size | yes | **component** | n/a on this platform | verify live | `bounded-floor` only |
+| Draw calls, memory, main thread | yes | no | verify live | no | renderer passed in only |
+| Biometrics | yes, on supported hardware | integration dependent | no | no | no |
+| Editor sessions excluded | yes | **no, behind a toggle** | **no equivalent** | **no equivalent** | **no equivalent** |
 
 Three rows change a Phase 1 recommendation:
 
 - **"Component" is not "automatic."** On Unreal, most comfort, performance and boundary metrics come from built-in components the team adds. Name the component.
-- **Android XR documents only FPS as automatic.** Anything else the plan wants as a continuous value is a `recordSensor` call plus a sampling loop the team writes. Budget for it rather than assuming it is free.
-- **Only Unity filters developer sessions.** Unreal records editor sessions behind a toggle; Android XR and WebXR have no editor-session concept at all. On the other three, explicit `development_mode` separation is required rather than advisory.
+- **Android XR documents only FPS as automatic**, and visionOS is narrow too, though it gives participant height for free, which nothing else does.
+- **Only Unity filters developer sessions.** On every other target, explicit `development_mode` separation is required rather than advisory.
 
 ---
 
 ## Effort differences for the same recommendation
 
-Same plan item, materially different cost depending on the SDK. Say so when it applies, because a team reading another SDK's docs will have the wrong expectation.
-
-| Plan item | Unity | Unreal | Android XR | WebXR |
-| --- | --- | --- | --- | --- |
-| Exit poll at end of module | low: place a prefab hook | low to medium: Blueprint nodes, shipped widgets, plus a Widget Interaction component | **verify support first**; if absent, own UI plus a custom event | **medium to high**: fetch the set, build the UI, submit answers |
-| Track ten dynamic objects | low to medium: components plus batch upload | low to medium: components plus Dynamic Object Manager | medium: register each, upload each through the web app | medium: per-object tagging, registration and upload |
-| Track spawned objects | ID Pool | ID Pool Asset sized to concurrent spawns | register per instance | register per instance |
-| Comfort / FPS / room metrics | free | add the built-in components | FPS free, the rest is your own sampling | partial; profiler needs the renderer passed in |
-| Numeric event properties | free | free in C++, **broken in Blueprint** | free, within the 10-property cap | free |
-| Scene upload | in-engine, one action | in-engine; multi-level needs a combine strategy | export glTF Separate, upload four files | export glTF Separate, upload four files |
-| Dev/prod separation | session property; editor already excluded | session property; editor sessions visible | session property; nothing is excluded | session property; nothing is excluded |
-| Install prerequisites | UPM, no project changes | **project must be C++ based** | Gradle, plus AndroidX XR alpha alignment | npm, Node 20+ |
+| Plan item | Unity | Unreal | visionOS | Android XR | WebXR |
+| --- | --- | --- | --- | --- | --- |
+| Exit poll at end of module | low: place a prefab hook | low to medium: Blueprint nodes plus widgets and a Widget Interaction component | low: view model plus six shipped SwiftUI views, offline-capable | **verify support first** | **medium to high**: build the UI yourself |
+| Track ten dynamic objects | low to medium | low to medium | medium: register each, upload each via web app | medium | medium |
+| Track spawned objects | ID Pool | ID Pool Asset | register per instance | register per instance | register per instance |
+| Comfort / FPS / device metrics | free | add the components | mostly free, narrow set | FPS free, rest is your own sampling | partial |
+| Numeric event properties | free | free in C++, **broken in Blueprint** | **broken; put them on the session** | free, within 10 | free |
+| Eye-attention analysis | free on eye-tracked hardware | free on eye-tracked hardware | **impossible** | verify live | hardware dependent |
+| Offline operation | supported | supported | **supported and specified** | not documented | not documented |
+| Install prerequisites | UPM | **project must be C++ based** | local Swift package, not a remote URL | Gradle plus AndroidX XR alpha alignment | npm, Node 20+ |
 
 ---
 
@@ -95,26 +105,30 @@ Same plan item, materially different cost depending on the SDK. Say so when it a
 
 Apply these before presenting any plan:
 
-1. **If the project is WebXR and not Three.js or Mattercraft, remove every dynamic object row.** Replace object-level gaze and interaction questions with custom events carrying an object identifier property, and state plainly what that cannot answer: dwell before action, attention without interaction, object heatmaps.
-2. **If the project is plain JS or any WebXR framework without dynamic objects, remove every per-object attention recommendation.** A gaze stream still exists, but heatmaps, object attention analysis and fixation-based objectives do not.
-3. **If the plan contains an exit poll, check the target supports one.** WebXR: scope the UI work as a line item. Unreal: scope the Widget Interaction component. **Android XR: verify ExitPoll exists at all before including it**, and if it does not, replace it with the app's own UI plus a custom event and say what is lost.
-4. **If the plan contains remote controls, local cache, media, audio recording or multiplayer and the project is Android XR or WebXR, verify live before including them.** Do not carry them over from an engine-shaped plan.
-5. **If the plan relies on biometric or device-level sensors, confirm the SDK and the hardware both support them.** Most of that list is Unity-first.
-6. **If the project is anything but Unity, dev/prod separation is Phase 1 and non-negotiable.** Only Unity filters developer sessions.
-7. **If an objective uses a gaze or fixation step, confirm dynamic objects exist on that SDK and framework first.** If it uses an ExitPoll answer, confirm ExitPoll exists.
-8. **Do not let `queryable_data.md` over-promise.** Its automatic-sensor and device-field lists are written from the Unity SDK. The automatic capture table above is the cross-SDK version; where the two disagree, this file wins.
-9. **If the project is Unreal, name the built-in component behind every comfort, performance, boundary or input metric**, and check that the three components depending on hand dynamic objects (Arm Length, Hand Elevation, Input Tracker) have that prerequisite met.
+1. **If the project is WebXR and not Three.js or Mattercraft, remove every dynamic object row.** Replace object-level gaze and interaction questions with custom events carrying an object identifier property, and state what that cannot answer.
+2. **If the project is plain JS or any WebXR framework without dynamic objects, remove every per-object attention recommendation.**
+3. **If the plan contains an exit poll, check the target supports one.** WebXR: scope the UI work. Unreal: scope the Widget Interaction component. **Android XR: verify ExitPoll exists at all.** visionOS and Unity: it is cheap, so place hooks early.
+4. **If the plan contains remote controls, local cache, media, audio recording or multiplayer and the project is not Unity or Unreal, verify live before including them.** visionOS local cache is the exception: it is documented and solid.
+5. **If the plan relies on biometric or device-level sensors, confirm the SDK and the hardware both support them.**
+6. **If the project is anything but Unity, dev/prod separation is Phase 1 and non-negotiable.**
+7. **If an objective uses a gaze or fixation step, confirm dynamic objects exist on that SDK.** On visionOS the objective will build and score, but it scores head direction: name it accordingly ("faced the notice", not "read the notice").
+8. **Do not let `queryable_data.md` over-promise.** Its lists are written from the Unity SDK; where it and the table above disagree, this file wins.
+9. **If the project is Unreal, name the built-in component behind every comfort, performance, boundary or input metric**, and check the three that need hand dynamic objects.
 10. **If the project is Unreal and any plan row carries a numeric property, state which authoring surface sends it.** Blueprint stringifies values.
-11. **If the project is Android XR, count the properties on every event.** Ten is the cap and the surplus is dropped silently. If an event needs a dynamic object link, that costs a slot too.
-12. **If the project is Android XR or WebXR, confirm the asset pipeline can emit glTF Separate.** The Upload Web App takes `.gltf` plus `.bin` and rejects GLB, which is what most pipelines produce by default.
+11. **If the project is Android XR, count the properties on every event.** Ten is the cap and the surplus is dropped silently.
+12. **If the project is visionOS or Android XR, confirm the asset pipeline can emit glTF Separate.** The Upload Web App rejects GLB, which is what most pipelines produce by default.
+13. **If the project is visionOS and any plan row carries a numeric event property, move it to the session or accept the loss.** Custom event properties are string-only with no typed alternative.
+14. **If the project is visionOS, restate every attention claim in the plan as head direction.** Then check whether the business question survives that restatement. If it does not, raise it during discovery rather than after the dashboard is full.
 
 ---
 
 ## When a team runs more than one SDK
 
-Some organizations ship the same experience to several targets: an engine build for headsets, a WebXR build for the browser, a native Android XR build for a specific device. Two things matter:
+Some organizations ship one experience to several targets: an engine build for headsets, a native build per platform, a WebXR build for the browser. Two things matter:
 
-- **Event names, property keys and units should be identical across all of them.** They land in the same project and the same queries. A divergence here is the one mistake that is expensive to undo later, because it splits every series permanently. Write the conventions document once and apply it to every build (SKILL.md rule 3). Pay particular attention to property **types** and **counts**: an event that is numeric on one SDK and stringified on another has diverged even when the names match, and an event designed for an unconstrained SDK may not fit Android XR's ten-property cap, which forces a choice between trimming everywhere or accepting divergence. Trim everywhere.
-- **Scene IDs and dynamic object IDs are per-project, not per-SDK.** If multiple builds report to one project, decide deliberately whether they share a scene or upload separate ones. Sharing is right when it is the same environment and you want combined replay and heatmaps; separate scenes are right when the geometry genuinely differs, since mismatched geometry makes replay misleading rather than merely imperfect.
+- **Event names, property keys and units should be identical across all of them.** They land in the same project and the same queries, and divergence splits every series permanently. Write the conventions document once and apply it everywhere (SKILL.md rule 3). Watch property **types** and **counts** especially: an event that is numeric on one SDK, stringified on another and capped on a third has effectively diverged three ways while looking identical in the plan. Design to the tightest constraint in the set.
+- **Scene IDs and dynamic object IDs are per-project, not per-SDK.** If multiple builds report to one project, decide deliberately whether they share a scene or upload separate ones.
+
+**One caution specific to mixed Vision Pro estates.** A team running a native visionOS build alongside a Unity build on eye-tracked hardware will have gaze data that means two different things under one property name. Either separate them with a session property that records the platform, or keep the analyses apart. Merging them silently produces an attention metric that is an average of two incompatible measurements.
 
 Cross-engine background: https://docs.cognitive3d.com/scenarios/mixing-unreal-unity/

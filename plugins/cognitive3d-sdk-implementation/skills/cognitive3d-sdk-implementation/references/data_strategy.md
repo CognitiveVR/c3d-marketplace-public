@@ -4,7 +4,7 @@ _Stable strategy layer for deciding what to track and why._
 
 Read this file after the main SKILL.md when you need deeper guidance on primitives, phasing, overlays, naming, or anti-patterns.
 
-**This file is SDK-neutral.** Everything here describes what to track and why, and applies equally to Unity, Unreal, Android XR and WebXR projects. It will occasionally suggest something a particular SDK or framework cannot do, so screen the finished plan against `sdk_capability_matrix.md` before presenting it, and route implementation detail to the SDK reference for the project's target.
+**This file is SDK-neutral.** Everything here describes what to track and why, and applies equally to Unity, Unreal, visionOS, Android XR and WebXR projects. It will occasionally suggest something a particular SDK or framework cannot do, so screen the finished plan against `sdk_capability_matrix.md` before presenting it, and route implementation detail to the SDK reference for the project's target.
 
 ## Table of contents
 
@@ -90,7 +90,7 @@ A large percentage of bad instrumentation comes from using the wrong primitive.
 | Need to know what object was seen, used, moved, or fixated | Dynamic object | Adds object-level context for replay, gaze, and objectives. **Not available on every SDK and framework** — check `sdk_capability_matrix.md` before planning one |
 | Measure completion logic or sequences | Objective | Turns events, gaze, and survey responses into success logic. Created on the dashboard or programmatically via the MCP server with a write-enabled organization key |
 | Self-reported feedback or cohort questions | Exit poll | Best for sentiment, preference, confidence, and study questions. Question sets are created on the dashboard or programmatically via the MCP server with a write-enabled organization key |
-| Continuous value sampled over time | Sensor | Time-series charted on the session timeline; aggregates (avg/min/max) queryable. **How much arrives automatically varies sharply by SDK** — broad on Unity, opt-in components on Unreal, FPS only on Android XR — so check `sdk_capability_matrix.md` before assuming a stream is free. Custom sensors capture app-specific continuous values |
+| Continuous value sampled over time | Sensor | Time-series charted on the session timeline; aggregates (avg/min/max) queryable. **How much arrives automatically varies sharply by SDK** — broad on Unity, opt-in components on Unreal, narrow on visionOS, FPS only on Android XR — so check `sdk_capability_matrix.md` before assuming a stream is free. Custom sensors capture app-specific continuous values |
 | Analyst-added grouping after the fact | Session tag | Flexible for cohorting and ad hoc study grouping |
 
 ### Event or property?
@@ -137,11 +137,11 @@ Suggested properties: `stage_name`, `stage_order`, `duration_seconds`, `help_use
 
 Add dynamic objects only where object-level attention or interaction answers a question. Good candidates: equipment, tools, instruction surfaces, targets, prototypes, guide objects, objects used in objectives. Do not track everything — spawned objects like bullets pollute the object list.
 
-**Important:** registering an object in the app is only half the job. Dynamic object meshes must also be exported and uploaded **separately from the scene** (Unity's Feature Builder, Unreal's Dynamic Object Manager, or the Upload Web App on Android XR and WebXR). Without that step, objects have no visual representation in dashboard replay. Scene upload and dynamic object mesh upload are two distinct workflows on every SDK, and this is the single most commonly missed step in an integration.
+**Important:** registering an object in the app is only half the job. Dynamic object meshes must also be exported and uploaded **separately from the scene** (Unity's Feature Builder, Unreal's Dynamic Object Manager, or the Upload Web App on visionOS, Android XR and WebXR). Without that step, objects have no visual representation in dashboard replay. Scene upload and dynamic object mesh upload are two distinct workflows on every SDK, and this is the single most commonly missed step in an integration.
 
-**Availability:** dynamic objects exist on Unity, Unreal and Android XR, and on WebXR only for the Three.js and Mattercraft adapters. Where they are unavailable, substitute custom events carrying an object identifier property and state in the plan what that cannot answer: dwell before action, attention without interaction, and object heatmaps. See `sdk_capability_matrix.md`.
+**Availability:** dynamic objects exist on Unity, Unreal, visionOS and Android XR, and on WebXR only for the Three.js and Mattercraft adapters. Where they are unavailable, substitute custom events carrying an object identifier property and state in the plan what that cannot answer: dwell before action, attention without interaction, and object heatmaps. See `sdk_capability_matrix.md`.
 
-**Objects spawned at runtime** need an identity strategy: Unity and Unreal use ID Pools (Unreal's is an Id Pool Asset that must be sized to the concurrent spawn count); Android XR and WebXR register each instance explicitly at spawn time. Route the mechanics to the SDK reference.
+**Objects spawned at runtime** need an identity strategy: Unity and Unreal use ID Pools (Unreal's is an Id Pool Asset that must be sized to the concurrent spawn count); visionOS, Android XR and WebXR register each instance explicitly at spawn time. Route the mechanics to the SDK reference.
 
 > **Field note:** See `field_notes.md` → _Dynamic objects: quality over quantity_ for more.
 
@@ -155,9 +155,9 @@ Set when cross-session analysis matters: shared-device training, employee progre
 
 ### 6. Dev versus production separation
 
-For builds and deployments used during development, use a `development_mode` session property, session tag, or separate project. Without this, dashboards become noisy fast. A session property is the portable choice: SDK-applied session tags are not documented on every target, so prefer the property when the SDK is Android XR or when you have not confirmed tag support.
+For builds and deployments used during development, use a `development_mode` session property, session tag, or separate project. Without this, dashboards become noisy fast. A session property is the portable choice: SDK-applied session tags are not documented on every target, so prefer the property when the SDK is visionOS or Android XR, or when you have not confirmed tag support.
 
-How much this matters depends on the SDK, and only Unity does any of it for you. Unity excludes in-editor sessions from major dashboard analytics automatically, so the property mainly covers sideloaded device builds. Unreal records editor sessions and shows them behind a dashboard toggle rather than filtering them out. Android XR and WebXR have no equivalent concept at all: local development produces sessions indistinguishable from real ones. On every SDK except Unity, explicit separation is mandatory rather than advisory. See the field note.
+How much this matters depends on the SDK, and only Unity does any of it for you. Unity excludes in-editor sessions from major dashboard analytics automatically, so the property mainly covers sideloaded device builds. Unreal records editor sessions and shows them behind a dashboard toggle rather than filtering them out. visionOS, Android XR and WebXR have no equivalent concept at all: local development produces sessions indistinguishable from real ones. On every SDK except Unity, explicit separation is mandatory rather than advisory. See the field note.
 
 > **Field note:** See `field_notes.md` → _Dev/prod separation, and what the SDK does or does not do for you_ for more.
 
@@ -169,17 +169,17 @@ Record when these affect interpretation: hands vs controllers, VR vs WebGL, prac
 
 Add hooks even without final questions. Questions are configured on the platform — dashboard or MCP — with no new build. Stakeholders inevitably ask "can we survey users?" weeks after launch — hooks eliminate that bottleneck.
 
-**First confirm the SDK has ExitPoll at all.** It is documented for Unity, Unreal, WebXR, visionOS and C++, and has no Android XR page; verify live before this baseline item goes into an Android XR plan, and substitute the app's own UI writing a custom event if it is genuinely unavailable, naming what that costs: questions baked into the release, and no dashboard-side question management.
+**First confirm the SDK has ExitPoll at all.** It is documented for Unity, Unreal, visionOS, WebXR and C++, and has no Android XR page; verify live before this baseline item goes into an Android XR plan, and substitute the app's own UI writing a custom event if it is genuinely unavailable, naming what that costs: questions baked into the release, and no dashboard-side question management.
 
-Then scope the in-app side honestly. Unity ships survey UI you can place, and Unreal ships UMG widgets and actors plus three Blueprint nodes (though the panel is unanswerable without a Widget Interaction component on the player or controller). The WebXR SDK fetches the question set and submits answers but renders nothing, so a WebXR exit poll includes building the survey UI. Plan that as real work rather than a hook placement.
+Then scope the in-app side honestly. Unity ships survey UI you can place; Unreal ships UMG widgets and actors plus three Blueprint nodes (though the panel is unanswerable without a Widget Interaction component on the player or controller); visionOS ships six SwiftUI question views plus a view model, and caches question sets so surveys work offline, which makes it one of the cheaper places to honour this recommendation. The WebXR SDK fetches the question set and submits answers but renders nothing, so a WebXR exit poll includes building the survey UI. Plan that as real work rather than a hook placement.
 
-> **Field note:** See `field_notes.md` → _Exit poll hooks are cheap on the engine SDKs, expensive on WebXR, and unconfirmed on Android XR_ for more.
+> **Field note:** See `field_notes.md` → _Exit poll hooks are cheap on most SDKs, expensive on WebXR, and unconfirmed on Android XR_ for more.
 
 Good default positions: beginning of experience, end of module/session/content unit, major milestones.
 
 ### 9. Controller and boundary tracking verification
 
-Single most common issue in integration reviews — verify both in every validation pass, regardless of project type.
+Single most common issue in integration reviews — verify both in every validation pass on any platform that has them. Apple Vision Pro has neither controllers nor a boundary concept, so mark both not applicable there rather than failed.
 
 > **Field note:** See `field_notes.md` → _Controller and boundary tracking verification_ for more.
 
@@ -189,6 +189,7 @@ Geometry that exports badly makes replay misleading rather than merely imperfect
 
 - **Unity:** custom shaders render as white materials on the dashboard, because the GLTF exporter cannot map custom properties to PBR. A shader-properties export class is needed.
 - **Unreal:** complex materials may not translate, so the diffuse output has to be representative on its own. Forward Shading can crash the glTF export, TextRenderers do not export, and Metahumans need LOD 0 with hair and skeletal animation unsupported.
+- **visionOS:** there is no exporter; geometry comes from the team's own pipeline and goes up through the web app, in glTF Separate rather than GLB. Reuse the Scene ID on later uploads or you create duplicate scenes.
 - **Android XR:** there is no exporter at all; geometry is produced by the team's own asset pipeline and uploaded through the web app, which accepts glTF Separate (`.gltf` plus `.bin`) and rejects GLB. Confirm the pipeline can emit that before the plan assumes replay geometry exists.
 - **WebXR:** export capability varies by adapter. Some frameworks have no scene export at all, and Wonderland exports geometry only, with no materials or textures.
 
@@ -291,7 +292,7 @@ Goal: tune and compare.
 
 Usually includes: UI interaction detail, variant/condition tracking, remote controls / A/B support, catalog attributes, agent/conversational metrics, deeper surveys, social/multiplayer logic.
 
-Several of these are engine-only or unconfirmed on Android XR and WebXR (remote controls, multiplayer components, media, local cache). Screen against `sdk_capability_matrix.md` before promising them.
+Several of these are engine-only or unconfirmed on the native and browser SDKs (remote controls, multiplayer components, media). Local cache is the exception worth knowing: documented on Unity, Unreal and visionOS, not on Android XR or WebXR. Screen against `sdk_capability_matrix.md` before promising any of them.
 
 Questions Phase 3 can answer: Which variant performs better? Which settings correlate with better outcomes? Which curation increases repeat use?
 
@@ -349,7 +350,7 @@ Do not assume hardware metadata alone captures the product distinction the team 
 
 Record the condition via session property, participant property, session tag, or remote control state, using whichever of those the target SDK actually supports. The important part is that the assigned condition is recoverable later. If the condition is not recorded, the experiment effectively did not happen.
 
-Unity and Unreal both support remote controls; Android XR and WebXR do not document them. Where the SDK does not, the app's own config or feature-flag system assigns the condition and the plan simply records it as a session property. The requirement is on the recording, not on where the assignment came from.
+Unity and Unreal both support remote controls; visionOS, Android XR and WebXR do not document them. Where the SDK does not, the app's own config or feature-flag system assigns the condition and the plan simply records it as a session property. The requirement is on the recording, not on where the assignment came from.
 
 ### Privacy-sensitive capture
 
@@ -428,10 +429,14 @@ Renaming an event breaks every dashboard query, saved segment, and objective bui
 
 When a team ships the same experience on more than one SDK, every build reports into the same project and the same queries. Divergent event names, property keys or units split every series permanently. Write the conventions once and apply them everywhere. Types count as well as names: a property that is numeric on one SDK and stringified on another has diverged even when the key matches.
 
-### 15. Exceeding a property budget
+### 15. Reporting a proxy measurement as the real thing
+
+Gaze is not one measurement across platforms. On eye-tracked hardware it is where the eyes went; on Apple Vision Pro it is where the head was pointed, because visionOS exposes no eye-tracking rays to applications. A plan that says "time spent looking at the safety notice" on Vision Pro is reporting orientation, and a stakeholder reading that line will assume otherwise. Name the measurement, not the intention, wherever the two can differ.
+
+### 16. Exceeding a property budget
 
 Android XR caps custom events at ten key-value pairs and drops the surplus silently. "Use properties rather than more event names" is still right there, but the budget is finite, so each property has to earn its slot, and linking an event to a dynamic object spends one of them. Count before shipping the plan.
 
-### 16. Sending numbers as strings
+### 17. Sending numbers as strings
 
-A numeric property that arrives as text cannot be averaged, charted, bucketed or filtered numerically, and nothing on the dashboard flags it. The most common cause is Unreal's Blueprint custom event variant, which stringifies every value; the C++ variant preserves types. Check the authoring surface before assuming a numeric plan row will be queryable.
+A numeric property that arrives as text cannot be averaged, charted, bucketed or filtered numerically, and nothing on the dashboard flags it. Two SDKs do this by default: Unreal's Blueprint custom event variant stringifies every value (the C++ variant preserves types), and visionOS custom event properties are a string-only dictionary with no typed alternative, so numbers that must be queryable belong on the session instead. Check the authoring surface and the SDK before assuming a numeric plan row will be queryable.

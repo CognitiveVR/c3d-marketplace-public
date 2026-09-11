@@ -2,7 +2,7 @@
 
 This file is the routing and API layer for **Unreal Engine** implementation questions.
 
-For Unity projects load `unity_sdk_reference.md`; for native Android XR load `androidxr_sdk_reference.md`; for browser-based XR load `webxr_sdk_reference.md`. For cross-SDK feature parity at planning time, see `sdk_capability_matrix.md`.
+For Unity projects load `unity_sdk_reference.md`; for native Apple Vision Pro load `visionos_sdk_reference.md`; for native Android XR load `androidxr_sdk_reference.md`; for browser-based XR load `webxr_sdk_reference.md`. For cross-SDK feature parity at planning time, see `sdk_capability_matrix.md`.
 
 **Primary docs root:** https://docs.cognitive3d.com/
 **Unreal docs root:** https://docs.cognitive3d.com/unreal/get-started/
@@ -53,14 +53,14 @@ Unreal sits between Unity and the code-only SDKs in shape. Like Unity it is edit
 
 4. **Editor sessions are recorded and shown, not excluded.** Unity hides in-editor sessions from major dashboard analytics by default. In Unreal, pressing Play creates a session that appears on the dashboard behind an "Editor Mode" toggle. It is visible rather than filtered out, so dev/prod separation still needs an explicit session property or tag.
 
-| | Unity | Unreal | Android XR | WebXR |
-| --- | --- | --- | --- | --- |
-| Authoring surface | Editor + C# | Editor + Blueprint **and** C++ | Kotlin or Java | Code (Mattercraft excepted) |
-| Install | UPM git URL | download release, extract to `Plugins/`, run Project Setup | Gradle dependency | `npm install` |
-| Scene upload | in-engine tooling | in-engine, via Project Setup / Scene Export | Upload Web App | Upload Web App |
-| Mesh upload | Feature Builder | Dynamic Object Manager window | Upload Web App | Upload Web App |
-| Property typing | typed | **typed in C++, stringified in Blueprint** | typed | typed |
-| Editor sessions | auto-excluded | recorded, shown behind a toggle | no concept, all sessions real | no concept, all sessions real |
+| | Unity | Unreal | visionOS | Android XR | WebXR |
+| --- | --- | --- | --- | --- | --- |
+| Authoring surface | Editor + C# | Editor + Blueprint **and** C++ | Swift | Kotlin or Java | Code (Mattercraft excepted) |
+| Install | UPM git URL | download release, extract to `Plugins/`, run Project Setup | local Swift package | Gradle dependency | `npm install` |
+| Scene upload | in-engine tooling | in-engine, via Project Setup / Scene Export | Upload Web App | Upload Web App | Upload Web App |
+| Mesh upload | Feature Builder | Dynamic Object Manager window | Upload Web App | Upload Web App | Upload Web App |
+| Event property typing | typed | **typed in C++, stringified in Blueprint** | **string-only** | typed | typed |
+| Editor sessions | auto-excluded | recorded, shown behind a toggle | no concept | no concept | no concept |
 
 ---
 

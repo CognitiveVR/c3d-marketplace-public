@@ -2,7 +2,9 @@
 
 This file is a routing layer for Unity SDK implementation questions. It helps find the right live docs page quickly.
 
-For Unreal Engine load `unreal_sdk_reference.md`; for native Android XR (Kotlin apps on Jetpack XR or Meta Spatial) load `androidxr_sdk_reference.md`; for browser-based XR load `webxr_sdk_reference.md`. For cross-SDK feature parity at planning time, see `sdk_capability_matrix.md`.
+For Unreal Engine load `unreal_sdk_reference.md`; for native Apple Vision Pro apps in Swift load `visionos_sdk_reference.md`; for native Android XR (Kotlin apps on Jetpack XR or Meta Spatial) load `androidxr_sdk_reference.md`; for browser-based XR load `webxr_sdk_reference.md`.
+
+**A Unity app is still a Unity project on any device.** Unity builds shipped to Apple Vision Pro or to Android headsets belong here, not in the visionOS or Android XR references. For cross-SDK feature parity at planning time, see `sdk_capability_matrix.md`.
 
 **Primary docs root:** https://docs.cognitive3d.com/
 

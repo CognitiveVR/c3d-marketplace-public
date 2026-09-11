@@ -4,7 +4,9 @@ Use this file **after** discovery and **after** reading `data_strategy.md`.
 
 Do not paste the whole file into the answer. Pull only the playbook or overlay sections that fit the project.
 
-**This file is SDK-neutral.** The archetypes describe the shape of an experience, not the engine it runs on. Several recommendations here are unavailable on some SDKs and frameworks, so screen the finished plan against `sdk_capability_matrix.md` before presenting it. The ones that bite most often: **dynamic objects** (Unity, Unreal and Android XR, and WebXR only on Three.js and Mattercraft), **remote controls** and **multiplayer components** (Unity and Unreal; not documented for Android XR or WebXR), **ExitPoll** (not documented for Android XR), **audio recording** and **store-platform identity** such as Oculus Social or Steam (Unity only). Two further checks this file cannot make for you: on **Unreal**, whether the comfort, framerate and boundary metrics a playbook assumes are backed by built-in components the team actually added, and whether numeric properties come from C++ rather than Blueprint; on **Android XR**, whether any event in the plan exceeds the ten-property cap.
+**This file is SDK-neutral.** The archetypes describe the shape of an experience, not the engine it runs on. Several recommendations here are unavailable on some SDKs and frameworks, so screen the finished plan against `sdk_capability_matrix.md` before presenting it. The ones that bite most often: **dynamic objects** (everywhere except WebXR outside Three.js and Mattercraft), **remote controls** and **multiplayer components** (Unity and Unreal only), **ExitPoll** (not documented for Android XR), **audio recording** and **store-platform identity** such as Oculus Social or Steam (Unity only). Three further checks this file cannot make for you: on **Unreal**, whether the comfort, framerate and boundary metrics a playbook assumes are backed by built-in components the team actually added, and whether numeric properties come from C++ rather than Blueprint; on **Android XR**, whether any event exceeds the ten-property cap; on **visionOS**, whether any recommendation here treats gaze as eye attention, which that platform cannot provide, and whether numeric event properties need moving to the session because event properties are string-only.
+
+The gaze point deserves emphasis because it is invisible in a plan that reads correctly: every archetype below that says "gaze", "attention" or "fixation" means head direction on Apple Vision Pro. See `field_notes.md` → _Gaze is not the same measurement on every platform_.
 
 ## How to use this file
 
@@ -305,7 +307,7 @@ Usually relevant: cohort tags, shared-device study stations, survey-heavy flow, 
 
 - **Shared-device study stations need explicit participant ID.** Lab and kiosk setups are shared-device environments. See field note: _Shared devices: device ID is not enough_.
 - **Dynamic objects are especially high-value here.** Each prototype as a dynamic object gives gaze and fixation data tied to the specific item. See field note: _Dynamic objects: quality over quantity_.
-- **Exit polls are often essential, not optional.** Behavioral data and self-report together tell the story. Place hooks early. See field note: _Exit poll hooks are cheap on the engine SDKs, expensive on WebXR, and unconfirmed on Android XR_.
+- **Exit polls are often essential, not optional.** Behavioral data and self-report together tell the story. Place hooks early. See field note: _Exit poll hooks are cheap on most SDKs, expensive on WebXR, and unconfirmed on Android XR_.
 
 ### Common mistakes
 

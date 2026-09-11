@@ -2,7 +2,7 @@
 
 This file is the routing and API layer for **WebXR** implementation questions. Load it when the target project is a browser-based XR app (Three.js, Babylon.js, PlayCanvas, Wonderland Engine, Mattercraft, A-Frame, or plain WebXR/WebGL).
 
-For Unity projects load `unity_sdk_reference.md` instead; for Unreal Engine load `unreal_sdk_reference.md`; for native Android XR load `androidxr_sdk_reference.md`. For cross-SDK feature parity at planning time, see `sdk_capability_matrix.md`.
+For Unity projects load `unity_sdk_reference.md` instead; for Unreal Engine load `unreal_sdk_reference.md`; for native Apple Vision Pro load `visionos_sdk_reference.md`; for native Android XR load `androidxr_sdk_reference.md`. For cross-SDK feature parity at planning time, see `sdk_capability_matrix.md`.
 
 **Primary docs root:** https://docs.cognitive3d.com/
 **WebXR docs root:** https://docs.cognitive3d.com/webxr/get-started/
@@ -367,7 +367,7 @@ c3d.exitpoll.sendAllAnswers([0, 1.6, -2]);           // position is optional
 c3d.exitpoll.clearQuestionSet();                     // abandon without submitting
 ```
 
-**The critical difference from Unity: the SDK does not render anything.** It fetches the question set and submits answers; presenting the questions in the scene is entirely the application's job. Unity ships prefab panels; WebXR does not. When an exit poll appears in a WebXR plan, scope the UI work explicitly, because a team reading the Unity or Unreal docs will assume it is free and it is not. Both engine SDKs ship survey UI; WebXR is the only target where the survey is the application's to build, and this is the largest per-feature effort gap in the skill.
+**The critical difference from Unity: the SDK does not render anything.** It fetches the question set and submits answers; presenting the questions in the scene is entirely the application's job. Unity ships prefab panels; WebXR does not. When an exit poll appears in a WebXR plan, scope the UI work explicitly, because a team reading the Unity or Unreal docs will assume it is free and it is not. Unity, Unreal and visionOS all ship survey UI; WebXR is the only target where the survey is the application's to build, and this is the largest per-feature effort gap in the skill.
 
 Other constraints:
 
