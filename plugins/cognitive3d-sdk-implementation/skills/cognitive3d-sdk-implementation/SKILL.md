@@ -1,6 +1,6 @@
 ---
 name: cognitive3d-sdk-implementation
-description: "Cognitive3D SDK implementation strategy across engines and platforms — Unity, Unreal Engine, native Apple Vision Pro (visionOS), native Android XR (Jetpack XR and Meta Spatial SDK), WebXR (Three.js, Mattercraft, Wonderland, PlayCanvas, Babylon, plain WebXR), and the standalone C++ SDK for custom engines. Use this skill whenever someone asks about integrating Cognitive3D analytics, planning what to track, setting up the SDK, creating a tracking plan, or implementing custom events/dynamic objects/exit polls/session properties. Also use when the user mentions Cognitive3D, C3D, @cognitive3d/analytics, cvr-sdk-unreal, cvr-sdk-cpp, BP_Cognitive3DActor, Cognitive3DManager, Cognitive3DAnalyticsCore, CognitiveVRAnalyticsCore, com.cognitive3d, Apple Vision Pro, XR analytics, spatial analytics, or wants to instrument a VR/AR/MR/WebXR application for behavioral data collection. This covers the full workflow: SDK identification, discovery, data strategy, phased implementation, and technical routing."
+description: "Cognitive3D SDK implementation strategy across engines and platforms — Unity, Unreal Engine, native Apple Vision Pro (visionOS), native Android XR (Jetpack XR and Meta Spatial SDK), WebXR (Three.js, Mattercraft, Wonderland, PlayCanvas, Babylon, plain WebXR), and the standalone C++ SDK for custom engines. Use this skill whenever someone asks about integrating Cognitive3D analytics, planning what to track, setting up the SDK, creating a tracking plan, or implementing custom events/dynamic objects/exit polls/session properties. Also use when the user mentions Cognitive3D, C3D, @cognitive3d/analytics, cvr-sdk-unreal, cvr-sdk-cpp, BP_Cognitive3DActor, Cognitive3DManager, Cognitive3DAnalyticsCore, CognitiveVRAnalyticsCore, cognitive3d_ros, com.cognitive3d, Apple Vision Pro, XR analytics, spatial analytics, or wants to instrument a VR/AR/MR/WebXR application for behavioral data collection. This covers the full workflow: SDK identification, discovery, data strategy, phased implementation, and technical routing."
 ---
 
 # Cognitive3D SDK Implementation Strategy
@@ -161,6 +161,7 @@ Look for these signals before asking:
 | `settings.js` exporting `config.APIKey` and `allSceneData` | **WebXR**, SDK configured |
 | `CMakeLists.txt` or a `.sln` with C++ sources, and no `.uproject`, `Assets/`, Gradle or Xcode project | **C++** (custom engine or native app) |
 | `#include "cognitive/CognitiveVRAnalytics.h"`, `CognitiveVRAnalyticsCore` or `cognitive::CoreSettings` in C++ source | **C++**, SDK installed |
+| `package.xml`, a colcon workspace, `*.launch.py`, `cognitive3d_ros` or `~/cognitive3d/params.yaml` | **ROS 2 robot** — not an XR target; see *Targets this skill does not cover* |
 
 #### Device names are not toolchains
 
@@ -208,7 +209,11 @@ Put the SDK, and the framework, platform or authoring surface, at the top of the
 
 #### Targets this skill does not cover
 
-Unity, Unreal, visionOS, Android XR, WebXR and C++ are covered here. Cognitive3D may ship integrations beyond those, and new ones appear. If a project targets something not in the table above, say so plainly, route to https://docs.cognitive3d.com/ for the correct documentation, and offer the parts of this skill that still apply. An uncovered target is most likely to resemble the C++ SDK in shape: no editor, code-only integration, host-supplied inputs, and geometry through the Upload Web App, so that reference is the closest analogue if the team wants a sense of the shape. The strategy layer — discovery, classification, primitives, phasing, naming, the business question map — is SDK-neutral and remains useful; only Step 7 technical routing does not.
+Unity, Unreal, visionOS, Android XR, WebXR and C++ are covered here.
+
+**ROS 2 is deliberately not.** The Cognitive3D SDK for ROS 2 records a robot's runs, not a person's experience, and nothing in this skill's strategy layer transfers: there is no participant, no exit poll and no gaze attention; sensors come from allowlisted topics, objectives from action-server outcomes, events from diagnostics and Nav2 recoveries, and the integration is a params file plus a launch include rather than app code. Do not run discovery, classify an archetype or write a track plan from this skill for a robot. Route instead to the integration skill the SDK ships, `integrate-cognitive3d-ros2`, in the repository's `.claude/skills/` directory (https://github.com/CognitiveVR/c3d-sdk-ros2/tree/main/.claude/skills), which surveys the live robot, writes the params file, runs `doctor` and verifies the first session. That repository's `docs/` folder is the documentation; the docs site has no ROS pages. The dashboard directory in any reference here, and the MCP-based validation in Step 7, still apply to a robot's sessions.
+
+Cognitive3D may ship integrations beyond those, and new ones appear. If a project targets something not in the table above, say so plainly, route to https://docs.cognitive3d.com/ for the correct documentation, and offer the parts of this skill that still apply. An uncovered target is most likely to resemble the C++ SDK in shape: no editor, code-only integration, host-supplied inputs, and geometry through the Upload Web App, so that reference is the closest analogue if the team wants a sense of the shape. The strategy layer — discovery, classification, primitives, phasing, naming, the business question map — is SDK-neutral and remains useful; only Step 7 technical routing does not.
 
 ### Step 1: Discovery
 
