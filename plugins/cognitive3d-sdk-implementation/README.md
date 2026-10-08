@@ -2,17 +2,17 @@
 
 A [Claude Code](https://docs.anthropic.com/en/docs/claude-code) plugin that provides implementation strategy guidance for the [Cognitive3D](https://cognitive3d.com) SDKs — an XR/VR/AR/MR analytics platform.
 
-Supports **Unity**, **Unreal Engine**, **native Apple Vision Pro** (visionOS), **native Android XR** (Jetpack XR and Meta Spatial SDK), and **WebXR**. Capability varies sharply between targets, and the skill screens every plan against what the project's SDK can actually do.
+Supports **Unity**, **Unreal Engine**, **native Apple Vision Pro** (visionOS), **native Android XR** (Jetpack XR and Meta Spatial SDK), **WebXR**, and the standalone **C++ SDK** for custom engines. Capability varies sharply between targets, and the skill screens every plan against what the project's SDK can actually do.
 
 ## What it does
 
 Activates the `cognitive3d-sdk-implementation` skill, which guides Claude through the full workflow for implementing Cognitive3D analytics:
 
-- **SDK identification** — detects whether the project is Unity, Unreal, visionOS, Android XR or WebXR, plus the WebXR framework, Android XR platform or Unreal authoring surface, then loads only the matching technical reference. Device names are not toolchains: a Vision Pro app may be native Swift or Unity, and the skill settles which before answering anything
+- **SDK identification** — detects whether the project is Unity, Unreal, visionOS, Android XR, WebXR or the C++ SDK, plus the WebXR framework, Android XR platform or Unreal authoring surface, then loads only the matching technical reference. Device names are not toolchains: a Vision Pro app may be native Swift or Unity, and the skill settles which before answering anything
 - **Discovery** — asks the right questions before recommending instrumentation
 - **Data strategy** — classifies projects by archetype, maps business questions to SDK primitives
 - **Phased implementation** — builds prioritized track plans (custom events, dynamic objects, exit polls, session properties)
-- **Capability screening** — keeps plans inside what the target SDK and platform can actually do: WebXR capability varies by adapter, several Unreal metrics come from opt-in components rather than automatic capture, Android XR caps events at ten properties with no documented ExitPoll, and Apple Vision Pro exposes no eye tracking to any app
+- **Capability screening** — keeps plans inside what the target SDK and platform can actually do: WebXR capability varies by adapter, several Unreal metrics come from opt-in components rather than automatic capture, Android XR caps events at ten properties with no documented ExitPoll, Apple Vision Pro exposes no eye tracking to any app, and the C++ SDK captures nothing automatically
 - **Technical routing** — points to the correct SDK APIs and dashboard docs
 
 The strategy layer is SDK-neutral. Only the technical reference changes between targets.
@@ -66,6 +66,7 @@ It will ask which SDK the project targets if it cannot determine that from the p
 | `references/visionos_sdk_reference.md` | Native visionOS SDK knowledge, Swift API, gaze limitation, ExitPoll SwiftUI stack, doc routing | visionOS |
 | `references/androidxr_sdk_reference.md` | Native Android XR SDK knowledge, Kotlin API, config and upload workflow, doc routing | Android XR |
 | `references/webxr_sdk_reference.md` | WebXR SDK technical knowledge, framework matrix, API surface, doc routing | WebXR |
+| `references/cpp_sdk_reference.md` | C++ SDK technical knowledge, host-driven recording model, API surface from the headers, doc routing | C++ |
 | `references/track_plan_template.md` | Output template with quick plan and full plan formats | SDK-neutral |
 | `references/example_plans.md` | Example track plans for common project shapes | SDK-neutral |
 | `references/queryable_data.md` | What the platform captures automatically and how custom data becomes queryable | Platform |
@@ -82,6 +83,7 @@ It will ask which SDK the project targets if it cannot determine that from the p
 | Android XR (Meta Spatial) | `com.cognitive3d:meta-spatial-sdk` | https://docs.cognitive3d.com/android-xr/get-started/ |
 | WebXR | `npm install @cognitive3d/analytics` | https://docs.cognitive3d.com/webxr/get-started/ |
 | WebXR / Mattercraft | `@cognitive3d/three-mattercraft` | https://docs.cognitive3d.com/webxr/mattercraft/ |
+| C++ | https://github.com/CognitiveVR/cvr-sdk-cpp (source or CMake static library; no tagged releases) | https://docs.cognitive3d.com/cpp/get-started/ |
 
 Capability is not uniform across targets, which is why the skill screens every plan:
 
@@ -90,10 +92,11 @@ Capability is not uniform across targets, which is why the skill screens every p
 - **visionOS** is the native Swift SDK for Apple Vision Pro. A Vision Pro app built in Unity is a Unity project instead. The platform exposes no eye-tracking rays to applications, so gaze is a head-direction signal and attention findings have to be described accordingly; custom event properties are string-only, and the SDK ships SwiftUI ExitPoll views with offline question-set caching.
 - **Android XR** is the native Kotlin SDK for apps with no game engine, and is not the External Android Plugin that Unity and Unreal use on Android headsets. Custom events are capped at ten properties, FPS is the only automatic sensor, and ExitPoll has no documented support.
 - **Unity** is the most feature-complete target and the only one that excludes in-editor sessions from dashboards automatically.
+- **C++** is a recording library, not a capture library. The host application supplies the HTTPS transport, every gaze sample, every sensor value and every dynamic object snapshot; nothing is automatic, there is no local cache, and whether gaze means eye attention or head direction depends on what the host passes in.
 
 ## Prerequisites
 
-You'll need a Cognitive3D account and access to a Unity, Unreal, visionOS, Android XR or WebXR project. Accounts and scene setup are managed from the [Cognitive3D Dashboard](https://app.cognitive3d.com). Unity and Unreal upload scene and object geometry through in-engine tooling; visionOS, Android XR and WebXR use the [Upload Web App](https://upload.cognitive3d.com), which accepts glTF Separate rather than GLB.
+You'll need a Cognitive3D account and access to a Unity, Unreal, visionOS, Android XR, WebXR or C++ project. Accounts and scene setup are managed from the [Cognitive3D Dashboard](https://app.cognitive3d.com). Unity and Unreal upload scene and object geometry through in-engine tooling; visionOS, Android XR, WebXR and C++ use the [Upload Web App](https://upload.cognitive3d.com), which accepts glTF Separate rather than GLB.
 
 ## Related
 

@@ -60,7 +60,7 @@ Users often decide within the first two minutes whether to abandon an app entire
 
 This makes FTUE tracking one of the highest-value instrumentation investments across almost all project types. Duration per stage, not just completion, is what reveals whether onboarding is fast enough.
 
-**Recommendation:** Always track FTUE stages with durations. If the team is debating onboarding approaches, flag that this is a strong candidate for A/B testing: with remote controls on Unity or Unreal, or with the app's own feature-flag mechanism on visionOS, Android XR and WebXR, where remote controls are not documented. Either way the requirement is that the assigned variant is recorded as a session property.
+**Recommendation:** Always track FTUE stages with durations. If the team is debating onboarding approaches, flag that this is a strong candidate for A/B testing: with remote controls on Unity or Unreal, or with the app's own feature-flag mechanism on visionOS, Android XR, WebXR and C++, where remote controls are not documented. Either way the requirement is that the assigned variant is recorded as a session property.
 
 ---
 
@@ -207,7 +207,7 @@ If the team mentions LMS, xAPI, or external reporting, make sure the module comp
 
 ## Audio recording: high value, high sensitivity
 
-**Applies to:** performance and assessment (training only). Unity; not documented for Unreal, Android XR or WebXR. visionOS records audio only inside an ExitPoll voice question, which is a narrower feature with its own Info.plist permission (Unreal's ExitPoll voice panels are a narrower, separate feature that needs `DefaultEngine.ini` configuration)
+**Applies to:** performance and assessment (training only). Unity; not documented for Unreal, Android XR or WebXR. visionOS and C++ record audio only inside an ExitPoll voice question, which is a narrower feature with its own Info.plist permission (Unreal's ExitPoll voice panels are a narrower, separate feature that needs `DefaultEngine.ini` configuration)
 
 Audio recording captures in-session audio aligned to the session timeline. It is valuable for training scenarios where verbal communication matters — trainees explaining procedures, giving verbal responses, or communicating with virtual patients.
 
@@ -247,4 +247,4 @@ Remote controls are a Phase 3 recommendation for most projects, but they are wor
 
 **Remote controls have no page in the visionOS, Android XR or WebXR docs.** Verify current support before promising them to a team on any of those. In the meantime the experiment still works: a browser or native app almost always has its own config endpoint, remote config service or feature-flag system, so let that assign the condition and record the assigned value as a session property. What matters analytically is that the condition is recoverable per session, not which system handed it out.
 
-**Recommendation:** If the team mentions A/B testing, live tuning, or balance iteration, flag remote controls early even if implementation is deferred to Phase 3. On visionOS, Android XR and WebXR, flag the recording requirement instead.
+**Recommendation:** If the team mentions A/B testing, live tuning, or balance iteration, flag remote controls early even if implementation is deferred to Phase 3. On visionOS, Android XR, WebXR and C++, flag the recording requirement instead.

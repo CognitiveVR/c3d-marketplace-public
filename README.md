@@ -23,7 +23,7 @@ Then install the plugin you want:
 | Plugin                               | Description                                                                                                                                                    |
 |--------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **cognitive3d-public-api**           | Expert guide for the Cognitive3D REST API — constructing requests, choosing endpoints, building slicer queries, and parsing responses for XR session analytics |
-| **cognitive3d-sdk-implementation**   | SDK implementation strategy for Unity, Unreal, visionOS, Android XR and WebXR — guides SDK identification, discovery, data strategy, phased instrumentation, and technical routing |
+| **cognitive3d-sdk-implementation**   | SDK implementation strategy for Unity, Unreal, visionOS, Android XR, WebXR and C++ — guides SDK identification, discovery, data strategy, phased instrumentation, and technical routing |
 
 ## Usage
 
@@ -44,7 +44,7 @@ Once installed, skills activate automatically when you ask Claude about relevant
 
 ### What the SDK implementation skill helps with
 
-- Identifying which SDK the project targets (Unity, Unreal, native visionOS, native Android XR, or WebXR) and loading only that reference
+- Identifying which SDK the project targets (Unity, Unreal, native visionOS, native Android XR, WebXR, or the C++ SDK) and loading only that reference
 - Discovery — asking the right questions before recommending instrumentation
 - Classifying projects by business motion and archetype
 - Building phased tracking plans (custom events, dynamic objects, exit polls, session properties)
@@ -53,7 +53,7 @@ Once installed, skills activate automatically when you ask Claude about relevant
 
 ### Migrating from cognitive3d-unity-implementation
 
-`cognitive3d-unity-implementation` has been replaced by `cognitive3d-sdk-implementation`. All of the Unity guidance carries over; the new plugin adds Unreal, visionOS, Android XR and WebXR alongside it.
+`cognitive3d-unity-implementation` has been replaced by `cognitive3d-sdk-implementation`. All of the Unity guidance carries over; the new plugin adds Unreal, visionOS, Android XR, WebXR and C++ alongside it.
 
 If you had the Unity plugin installed, run these two commands in a Claude Code session:
 

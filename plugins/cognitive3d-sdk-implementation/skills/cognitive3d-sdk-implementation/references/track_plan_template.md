@@ -272,7 +272,7 @@ Include only the column for the project's target SDK.
 | Built-in components | https://docs.cognitive3d.com/unity/components/ | https://docs.cognitive3d.com/unreal/built-in-components/ | n/a | n/a | n/a |
 | Platform support | n/a | n/a | https://docs.cognitive3d.com/visionos/get-started/ | https://docs.cognitive3d.com/android-xr/get-started/ | https://docs.cognitive3d.com/webxr/framework-support/ |
 
-The Upload Web App (https://docs.cognitive3d.com/dashboard/upload-webapp/) serves visionOS, Android XR and WebXR, and any other target without in-engine tooling.
+The Upload Web App (https://docs.cognitive3d.com/dashboard/upload-webapp/) serves visionOS, Android XR, WebXR and C++, and any other target without in-engine tooling.
 
 SDK-independent:
 

@@ -1,6 +1,6 @@
 {
   "name": "cognitive3d-sdk-implementation",
-  "description": "Cognitive3D SDK implementation strategy across Unity, Unreal, visionOS, Android XR and WebXR — guides SDK identification, discovery, data strategy, phased instrumentation, and technical routing for VR/AR/MR/WebXR analytics.",
+  "description": "Cognitive3D SDK implementation strategy across Unity, Unreal, visionOS, Android XR, WebXR and C++ — guides SDK identification, discovery, data strategy, phased instrumentation, and technical routing for VR/AR/MR/WebXR analytics.",
   "version": "2.3.0",
   "author": {
     "name": "Cognitive3D",
@@ -22,6 +22,9 @@
     "meta-spatial",
     "kotlin",
     "webxr",
+    "cpp",
+    "c++",
+    "custom-engine",
     "threejs",
     "babylonjs",
     "playcanvas",
