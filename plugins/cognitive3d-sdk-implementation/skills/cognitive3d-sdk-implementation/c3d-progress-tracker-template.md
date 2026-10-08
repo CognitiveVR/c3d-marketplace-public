@@ -67,8 +67,8 @@ _Capture anything unusual, constraints, or context that doesn't fit the question
 | Boundary tracking verified | `Not started` / `N/A` / `Done` | N/A on visionOS: no boundary concept |
 | Scene export fidelity check | `Not started` / `N/A` / `Done` | Unity: custom shaders. Unreal: materials, Forward Shading, Metahumans. visionOS/Android XR/WebXR: glTF Separate, not GLB |
 | Built-in components added (Unreal) | `Not started` / `N/A` / `Done` | Framerate, HMD orientation, room size, battery, boundary as the plan requires |
-| Numeric properties verified as numbers | `Not started` / `In progress` / `Done` | Unreal Blueprint and visionOS event properties both stringify; on visionOS move them to the session |
-| Event property counts within cap | `Not started` / `N/A` / `Done` | Android XR allows 10 per event; surplus is dropped silently |
+| Numeric properties verified as numbers | `Not started` / `In progress` / `Done` | Unreal's one-node Blueprint *Send Custom Event* stringifies; use the *Make Custom Event* nodes or C++. visionOS event properties are typed |
+| Event property counts within cap | `Not started` / `N/A` / `Done` | Android XR documents 10 per event; the SDK does not enforce it, so count by hand |
 | ExitPoll support confirmed for this SDK | `Not started` / `N/A` / `Done` | Not documented for Android XR; verify before relying on it |
 | Attention claims restated for the platform | `Not started` / `N/A` / `Done` | visionOS gaze is head direction, not eye tracking |
 | Validation session run | `Not started` / `In progress` / `Done` | |

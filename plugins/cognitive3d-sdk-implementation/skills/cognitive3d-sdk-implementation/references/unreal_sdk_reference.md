@@ -47,7 +47,7 @@ Unreal sits between Unity and the code-only SDKs in shape. Like Unity it is edit
 
 1. **The project must be C++ based.** A pure Blueprint project cannot host the plugin. Converting is a documented and quick step (Tools > New C++ Class, finish the wizard, delete the temporary class, which generates the project structure), but it is a real prerequisite to state during discovery rather than discover at install time.
 
-2. **Blueprint custom event properties are converted to strings.** The Blueprint `Send` variant takes `TArray<AnalyticsEventAttr>` and stringifies every value; the C++ variant takes a `TSharedPtr<FJsonObject>` and preserves types. This is the single most consequential Unreal-specific trap in this whole skill: a `duration_seconds` sent from Blueprint arrives as text and **cannot be averaged, charted, or used in a numeric filter**. `queryable_data.md`'s "send numbers as numbers" rule has a concrete failure mode here. Flag it whenever a Blueprint-authored plan contains a numeric property, and route numeric events through C++ or a C++ helper node.
+2. **The one-node Blueprint *Send Custom Event* converts properties to strings; the typed Blueprint nodes and C++ do not.** The `Send Custom Event` node takes `TArray<AnalyticsEventAttr>` and stringifies every value. Blueprint also exposes `Make Custom Event` followed by `Set Float Property`, `Set Integer Property`, `Set Bool Property`, `Set String Property` and `Set Dynamic Object`, which build a `UCustomEvent` with typed property maps that serialize as numbers and booleans; the C++ `TSharedPtr<FJsonObject>` variant preserves types as well. This is still the most consequential Unreal-specific trap in the skill, because the one-node send is the obvious one to reach for: a `duration_seconds` sent through it arrives as text and **cannot be averaged, charted, or used in a numeric filter**. Flag it whenever a Blueprint-authored plan contains a numeric property, and route numeric events through the `Make Custom Event` node path or C++.
 
 3. **Much of what Unity records automatically is an opt-in component here.** Framerate, HMD orientation, room size, battery, boundary events, controller tracking loss, HMD height and arm length are **Blueprint Script Macro components you add**, not free capture. Do not tell an Unreal team that FPS or comfort data is automatic; tell them which component to add. See "Built-in components" below.
 
@@ -59,7 +59,7 @@ Unreal sits between Unity and the code-only SDKs in shape. Like Unity it is edit
 | Install | UPM git URL | download release, extract to `Plugins/`, run Project Setup | local Swift package | Gradle dependency | `npm install` |
 | Scene upload | in-engine tooling | in-engine, via Project Setup / Scene Export | Upload Web App | Upload Web App | Upload Web App |
 | Mesh upload | Feature Builder | Dynamic Object Manager window | Upload Web App | Upload Web App | Upload Web App |
-| Event property typing | typed | **typed in C++, stringified in Blueprint** | **string-only** | typed | typed |
+| Event property typing | typed | **typed in C++ and via the Make Custom Event nodes; stringified by the one-node Send Custom Event** | typed | typed | typed |
 | Editor sessions | auto-excluded | recorded, shown behind a toggle | no concept | no concept | no concept |
 
 ---
@@ -206,7 +206,7 @@ For events with a duration, use a persistent `UCustomEvent` object, which times 
 
 Position and HMD position are recorded automatically when not supplied, so unlike WebXR the position argument is optional.
 
-**The Blueprint typing trap, restated because it matters:** the Blueprint `Send` variant takes `TArray<AnalyticsEventAttr>` and **converts every property value to a string**. The C++ `FJsonObject` variant preserves types. Any numeric property that must be averaged, charted, bucketed or compared numerically has to go through the C++ path. When auditing an existing Unreal integration, check which variant is in use before concluding the properties are fine; this failure is invisible until someone tries to chart a duration.
+**The Blueprint typing trap, restated because it matters:** the one-node `Send Custom Event` takes `TArray<AnalyticsEventAttr>` and **converts every property value to a string**. The typed path keeps them: in Blueprint, `Make Custom Event` then `Set Float Property` / `Set Integer Property` / `Set Bool Property` / `Set String Property`, then send; in C++, `FJsonObject` with `SetNumberField` and friends. Any numeric property that must be averaged, charted, bucketed or compared numerically has to go through one of those. When auditing an existing Unreal integration, check which nodes are in use before concluding the properties are fine; this failure is invisible until someone tries to chart a duration.
 
 `AppendAllSensors()` is a genuinely useful Unreal-specific move for biometric work: it snapshots sensor values onto the event, so an outcome event carries the physiological state at that moment without a separate join.
 
@@ -495,7 +495,7 @@ Sourced from https://docs.cognitive3d.com/unreal/troubleshooting/ and the pages 
 | No sessions at all | no `BP_Cognitive3DActor` in the level |
 | No sessions, actor present | scene has no Scene Id, or was never uploaded |
 | Sessions exist but replay has no geometry | level not exported and uploaded, or uploaded under a different name |
-| Numeric properties cannot be charted or averaged | events sent through the Blueprint variant, which stringifies all values |
+| Numeric properties cannot be charted or averaged | events sent through the one-node Blueprint `Send Custom Event`, which stringifies all values; use the `Make Custom Event` nodes or C++ |
 | GLTF export crashes | Forward Shading enabled; disable it in Engine > Rendering for the export, then re-enable |
 | Textures wrong in replay | complex materials do not translate; make the diffuse output representative |
 | Meshes missing from export | TextRenderers are unsupported; skeletal meshes need UE 4.26+ for materials |

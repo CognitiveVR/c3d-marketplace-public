@@ -244,7 +244,7 @@ Suggested checklist:
 - participant properties appear as expected
 - controller and boundary tracking active, where the platform has them (neither exists on Apple Vision Pro)
 - scene geometry exports with correct materials, or the check is marked not applicable because the toolchain cannot export them
-- numeric properties arrive as numbers, not strings (Unreal Blueprint and visionOS event properties both stringify)
+- numeric properties arrive as numbers, not strings (Unreal's one-node Blueprint *Send Custom Event* stringifies; visionOS is typed but its docs example shows only a string)
 - attention findings are described as what the platform measured (head direction on visionOS)
 - any built-in components the plan depends on are present (Unreal)
 - no event exceeds the property cap where one applies (Android XR allows ten)

@@ -54,7 +54,7 @@ This is the leanest integration in the skill. It behaves like WebXR in shape (no
 
 1. **ExitPoll has no Android XR documentation.** It is documented for Unity, Unreal, WebXR, visionOS and C++, and absent here. The skill's universal baseline treats "place exit poll hooks early" as a Phase 1 item; on Android XR that item cannot be taken at face value. Verify live before including it, and if it is genuinely unavailable, plan self-report through the app's own UI plus a custom event, and say plainly what is lost: no dashboard-side question management, no changing questions without a release.
 
-2. **Custom events are capped at 10 properties.** No other SDK in this skill documents a limit. The "one event plus properties" advice in `data_strategy.md` still holds, but the budget is finite, so the properties on an event have to earn their place. Flag it whenever a plan row approaches the cap.
+2. **Custom events have a documented limit of 10 properties, which the SDK does not enforce.** No other SDK in this skill documents a limit. The 1.2.1 source serializes every property it is given, so an eleventh raises no error and what the platform does with it is unspecified; treat ten as the contract. The "one event plus properties" advice in `data_strategy.md` still holds, but the budget is finite, so the properties on an event have to earn their place. Flag it whenever a plan row approaches the cap.
 
 3. **Dynamic object association is a property, not a parameter.** The engine SDKs pass a dynamic object ID into the event call. Here the documented approach is a property such as `target_object_id` on an ordinary event. It works, and it costs one of the ten property slots, and the naming has to be consistent by convention because nothing enforces it.
 
@@ -136,7 +136,7 @@ Configuration is a JSON asset at `src/main/assets/cognitive3d.json`, generated f
 | `enable_gaze` | gaze tracking on or off |
 | `automatic_send_timer` | seconds between automatic sends |
 
-Plus data cache and snapshot settings; check the live page for the full list.
+Plus `local_data_cache_size` and snapshot settings; check the live page for the full list. The SDK keeps a local file cache of failed uploads and retries them (`local_data_cache_size` sizes it, 5 MB by default), which has no docs page at time of writing, so treat the behaviour as present but unspecified.
 
 - The runtime key is the **Application Key**. The **Developer Key** is a separate credential used only by the Upload Web App, and must not go in this file.
 - `cognitive3d.json` ships inside the APK, so the Application Key is extractable from a built app. That is inherent to a client-side SDK. Keep the file out of public source control where practical and treat the key as identifying rather than secret. Follow SKILL.md rule 4: never read, echo or log the value.
@@ -175,7 +175,7 @@ Java uses a `HashMap<String, Object>` and is otherwise identical.
 
 Constraints that shape a plan, not just an implementation:
 
-- **Maximum 10 key-value pairs per event.** This is the one hard budget in the skill. When a plan row lists more than a handful of properties, trim it here rather than letting the eleventh silently vanish.
+- **Documented maximum of 10 key-value pairs per event.** This is the one property budget in the skill. The SDK does not enforce it (the serializer writes every entry it is given), so nothing warns you and what the platform does with the surplus is unspecified. When a plan row lists more than a handful of properties, trim it here.
 - Property values may be strings, numbers or booleans. Send numbers as numbers, per `queryable_data.md`.
 - Keys should be ASCII, and should carry units (`duration_seconds`, `size_mb`), which matches the naming conventions in `data_strategy.md`.
 - Events are timestamped automatically and associated with the participant's position, so there is no position argument to pass, unlike WebXR.
@@ -334,7 +334,7 @@ Identical across SDKs. Route API query construction to the `cognitive3d-public-a
 - Performance: https://docs.cognitive3d.com/android-xr/performance/
 - Upload Web App: https://docs.cognitive3d.com/dashboard/upload-webapp/
 
-**Features with no Android XR page at time of writing** — verify live before promising any of them: ExitPoll, remote controls, local cache, media and 360, multiplayer, session tags, session name, audio recording, Active Session View.
+**Features with no Android XR page at time of writing** — verify live before promising any of them: ExitPoll, remote controls, media and 360, multiplayer, session tags, session name, audio recording, Active Session View. Local cache is in the SDK (see configuration above) but likewise has no page.
 
 ---
 
@@ -401,7 +401,7 @@ Dashboard surfaces are SDK-agnostic. Listed in full so an Android XR engagement 
 | Upload Web App rejects the key | organization key used (`orgkey-`); it needs the Developer Key |
 | Dynamic object tracked but invisible in replay | mesh never uploaded, or `meshName` does not match the uploaded model name |
 | Dynamic object instances do not aggregate | `meshName` differs per instance; the grouping key is `meshName`, not `name` |
-| Event property silently missing | more than 10 key-value pairs on the event |
+| Event property missing on the dashboard | more than 10 key-value pairs on the event; the SDK sends them all, the documented limit is 10 |
 | Event not linked to an object | the dynamic object ID property name does not match the project's convention |
 | Numeric property cannot be charted | sent as a string; the map takes typed values, so pass numbers as numbers |
 | No gaze data | `enable_gaze` false in the config |

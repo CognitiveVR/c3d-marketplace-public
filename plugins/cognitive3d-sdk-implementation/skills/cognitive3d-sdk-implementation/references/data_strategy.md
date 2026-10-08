@@ -292,7 +292,7 @@ Goal: tune and compare.
 
 Usually includes: UI interaction detail, variant/condition tracking, remote controls / A/B support, catalog attributes, agent/conversational metrics, deeper surveys, social/multiplayer logic.
 
-Several of these are engine-only or unconfirmed on the native and browser SDKs (remote controls, multiplayer components, media). Local cache is the exception worth knowing: documented on Unity, Unreal and visionOS, not on Android XR or WebXR. Screen against `sdk_capability_matrix.md` before promising any of them.
+Several of these are engine-only or unconfirmed on the native and browser SDKs (remote controls, multiplayer components, media). Local cache is the exception worth knowing: documented on Unity, Unreal and visionOS; present in the Android XR SDK (a `local_data_cache_size` setting) with no docs page; absent on WebXR. Screen against `sdk_capability_matrix.md` before promising any of them.
 
 Questions Phase 3 can answer: Which variant performs better? Which settings correlate with better outcomes? Which curation increases repeat use?
 
@@ -435,8 +435,8 @@ Gaze is not one measurement across platforms. On eye-tracked hardware it is wher
 
 ### 16. Exceeding a property budget
 
-Android XR caps custom events at ten key-value pairs and drops the surplus silently. "Use properties rather than more event names" is still right there, but the budget is finite, so each property has to earn its slot, and linking an event to a dynamic object spends one of them. Count before shipping the plan.
+Android XR's docs limit custom events to ten key-value pairs. The SDK does not enforce it, so nothing warns when an event goes over and what the platform does with the surplus is unspecified; treat ten as the contract. "Use properties rather than more event names" is still right there, but the budget is finite, so each property has to earn its slot, and linking an event to a dynamic object spends one of them. Count before shipping the plan.
 
 ### 17. Sending numbers as strings
 
-A numeric property that arrives as text cannot be averaged, charted, bucketed or filtered numerically, and nothing on the dashboard flags it. Two SDKs do this by default: Unreal's Blueprint custom event variant stringifies every value (the C++ variant preserves types), and visionOS custom event properties are a string-only dictionary with no typed alternative, so numbers that must be queryable belong on the session instead. Check the authoring surface and the SDK before assuming a numeric plan row will be queryable.
+A numeric property that arrives as text cannot be averaged, charted, bucketed or filtered numerically, and nothing on the dashboard flags it. One path does this by design: Unreal's one-node Blueprint *Send Custom Event* stringifies every value, while the *Make Custom Event* plus *Set Float/Integer/Bool Property* nodes and the C++ `FJsonObject` variant keep types. Everywhere else the property map is typed and the risk is the developer: visionOS's docs example shows only a string property although the API is `[String: Any]`, and copying the example turns a duration into text. Check the authoring surface before assuming a numeric plan row will be queryable.

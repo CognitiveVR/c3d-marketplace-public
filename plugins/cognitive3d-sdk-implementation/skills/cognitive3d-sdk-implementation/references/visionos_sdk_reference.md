@@ -58,7 +58,7 @@ This is the single most important thing to establish during discovery on a visio
 
 ## Other structural differences
 
-1. **Custom event properties are `[String: String]`.** Session properties are typed (String, Bool, Numeric); event properties are not. A numeric event property arrives as text and cannot be averaged, charted or filtered numerically. This is the same failure mode as Unreal's Blueprint variant, and it has no C++-style escape hatch here: if a number must be queryable, put it on the session, or accept the loss and say so.
+1. **Custom event properties are typed, but the docs example is not.** `CustomEvent` takes `properties: [String: Any]`, and `setProperty(key:value:)` takes `Any`; the SDK converts each value to a typed wire value (string, integer, number, boolean), so a `duration_seconds` sent as `4.5` arrives as a number. The docs page's only example is a string property, and teams that copy it send `"4.5"`, which arrives as text and cannot be averaged, charted or filtered numerically. The trap is the example, not the API: send numbers as numbers.
 2. **The SDK ships the ExitPoll UI.** Six SwiftUI question views plus a view model, and question sets cache locally so surveys work offline. This is the strongest ExitPoll story outside Unity, and a real reason to place hooks early.
 3. **Installation is a local Swift package**, not a remote package URL: the framework and `Package.swift` are copied into a subfolder and added as a local dependency.
 4. **Session start and end are async and return a result.** Unlike the engine SDKs there is no actor or component whose mere presence starts a session.
@@ -68,7 +68,7 @@ This is the single most important thing to establish during discovery on a visio
 | --- | --- | --- | --- | --- | --- |
 | Authoring | Editor + C# | Editor + Blueprint/C++ | Swift, SwiftUI, RealityKit | Kotlin or Java | JS/TS |
 | Install | UPM git URL | release into `Plugins/` | local Swift package | Gradle dependency | `npm install` |
-| Event property typing | typed | typed in C++, stringified in Blueprint | **string-only** | typed | typed |
+| Event property typing | typed | typed in C++ and via Make Custom Event nodes, stringified by the one-node Send Custom Event | typed (`[String: Any]`) | typed | typed |
 | Eye tracking | on supported hardware | on supported hardware | **never, platform restriction** | verify live | hardware dependent |
 | ExitPoll UI | shipped | shipped (UMG) | **shipped (SwiftUI)** | not documented | none, build it yourself |
 | Local cache | yes | yes | yes | not documented | not documented |
@@ -185,7 +185,7 @@ Full initializer:
 ```swift
 CustomEvent(
     name: String,
-    properties: [String: String]?,
+    properties: [String: Any],
     dynamicObjectId: String?,
     core: Cognitive3DAnalyticsCore
 )
@@ -195,10 +195,7 @@ CustomEvent(
 - **Duration comes free from deferring the send.** Construct the event when the activity starts, call `send()` when it ends, and duration is appended to the payload. This is the idiomatic way to get durations here and is easy to miss.
 - **`dynamicObjectId` is a first-class parameter**, unlike Android XR where the link is a property convention.
 
-**The property-typing trap.** `properties` is `[String: String]`. Numbers and booleans become text. A `duration_seconds` sent this way cannot be averaged, charted or numerically filtered, and nothing on the dashboard flags it. Two mitigations, in order of preference:
-
-1. Put values that must be numeric on the **session** instead (`setSessionProperty` is typed), where the question is a per-session one.
-2. Accept the loss for genuinely per-event values, and say so in the plan rather than letting an analyst discover it.
+**The property-typing trap is the docs example.** `properties` is `[String: Any]` and `setProperty(key:value:)` takes `Any`; numbers and booleans are kept as numbers and booleans on the wire. The docs page shows only a string property, so a team that copies it sends `"4.5"` for a duration, which arrives as text and cannot be averaged, charted or numerically filtered, and nothing on the dashboard flags it. Pass `4.5`, and when auditing an existing integration grep for quoted numerics in event properties.
 
 When auditing an existing visionOS integration, check this before concluding the instrumentation is sound.
 
@@ -457,7 +454,7 @@ Dashboard surfaces are SDK-agnostic. Listed in full so a visionOS engagement nev
 | Duplicate scenes on the dashboard | a new Scene ID generated instead of reusing the existing one |
 | Upload Web App rejects the model | GLB supplied; it accepts glTF Separate (`.gltf` plus `.bin`) |
 | Upload Web App rejects the key | organization key used (`orgkey-`); it needs the Developer Key |
-| Numeric property cannot be charted | sent as a custom event property, which is string-only; put it on the session instead |
+| Numeric property cannot be charted | sent as a quoted string, usually by copying the docs example; the dictionary is `[String: Any]`, so pass the number |
 | Dynamic object tracked but invisible in replay | mesh never uploaded through the web app |
 | Dynamic object never tracked | `core.entity` not set to the immersive root, or the component/system never registered |
 | SwiftUI window content not tracked | windows are outside the RealityKit hierarchy; needs `PositionTrackerView` with mirrored transforms |
