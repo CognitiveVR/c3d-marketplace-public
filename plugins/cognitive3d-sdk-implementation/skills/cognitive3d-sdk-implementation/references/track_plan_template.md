@@ -12,7 +12,7 @@ Use the quick plan format for first engagements, focused questions, and when the
 
 A quick plan has five sections:
 
-1. **Project readback** — what the experience is, who it's for, what the team wants to learn, plus the selected business motion, archetype(s), and overlays.
+1. **Project readback** — what the experience is, who it's for, what the team wants to learn, the target SDK and framework, plus the selected business motion, archetype(s), and overlays.
 2. **Top questions to answer now** — the 3–5 most important questions from discovery.
 3. **Phase 1 priorities** — foundation instrumentation only, with a brief note on why this phase matters and what it unlocks.
 4. **Event catalog** — a compact table of Phase 1 events (typically 4–8 events) with properties and first analysis use. For brownfield projects, include the Status column (see section 6) — the audit's keep/amend/revive/replace decisions belong in the quick plan too, not only in a full plan.
@@ -35,7 +35,8 @@ A full plan uses all 14 sections below.
 - Keep the plan phased.
 - Prefer the smallest useful set of recommendations.
 - Explain why each recommendation matters.
-- Route implementation detail to `unity_sdk_reference.md` and current docs.
+- Screen every row against `sdk_capability_matrix.md` before presenting. A plan containing something the target SDK cannot do is worse than a smaller plan.
+- Route implementation detail to the SDK reference for the project's target — `unity_sdk_reference.md`, `unreal_sdk_reference.md`, `visionos_sdk_reference.md`, `androidxr_sdk_reference.md` or `webxr_sdk_reference.md` — and to current docs.
 
 ---
 
@@ -45,6 +46,14 @@ A full plan uses all 14 sections below.
 - What the experience is
 - Who uses it
 - What the team wants to learn or decide
+
+**Target SDK**
+- Unity, Unreal, visionOS, Android XR, or WebXR
+- For a Vision Pro project, say whether it is native Swift or Unity; they are different SDKs
+- For Unreal, the authoring surface: Blueprint, C++, or both
+- For Android XR, the platform: Jetpack XR or Meta Spatial SDK
+- For WebXR, the framework: Three.js, Mattercraft, Wonderland, PlayCanvas, Babylon, or plain WebXR
+- Note any capability limits this imposes on the plan, so the reader understands why something obvious is absent
 
 **Primary business motion**
 - performance and compliance
@@ -65,6 +74,7 @@ A full plan uses all 14 sections below.
 - mixed reality
 - privacy-sensitive capture
 - content catalog
+- multi-SDK delivery
 - other relevant overlays
 
 ## 2. Top questions to answer now
@@ -156,11 +166,11 @@ When the project has existing instrumentation, add a **Status** column to the ev
 | `New` | Did not exist before this plan |
 | `Keep` | Exists, fires correctly, no change |
 | `Amend` | Keeps its name, gains or changes properties |
-| `Revive` | Code exists but fires nowhere — not attached to any live scene, prefab, or execution path |
+| `Revive` | Code exists but fires nowhere — not attached to any live scene or execution path (Unity: no GameObject or prefab; Unreal: an unreachable Blueprint graph or a level with no `BP_Cognitive3DActor`; visionOS: `core.entity` never set, so nothing is traversed; Android XR: a cancelled scope or an activity never reached; WebXR: never imported, or the call site is never reached) |
 | `Replaces: a, b, c` | Subsumes the listed existing events |
 | `Retire` | Should stop being sent |
 
-`Revive` matters because Unity projects routinely diverge between code presence and scene presence — an event script that exists in the codebase but is wired to nothing is neither `New` nor `Keep`.
+`Revive` matters because instrumentation routinely diverges between code presence and execution: a Unity event script that exists in the codebase but is attached to nothing in the scene, an Unreal Blueprint node sitting in a graph nothing calls, an Android XR sampling coroutine cancelled with its scope, a visionOS integration whose immersive root was never assigned, or a WebXR module that is imported but never reached because the adapter update or the session hook was never wired. None of those is `New` and none is `Keep`.
 
 ### Migration map
 
@@ -173,6 +183,8 @@ When the plan has **three or more** `Replaces`/`Retire` rows, add a migration ma
 - **Leave it alone** — keep the existing name; consistency is not worth the break.
 
 ## 7. Dynamic object plan
+
+Dynamic objects are available on Unity, Unreal, visionOS and Android XR, and on WebXR only for the Three.js and Mattercraft adapters. On visionOS, per-object gaze is head-direction based; say so in the "why it matters" column rather than implying eye attention. If the project cannot support them, replace this section with a one-line statement of that fact plus the custom-event substitute, and say what it cannot answer.
 
 List the objects that should become dynamic objects and why.
 
@@ -230,21 +242,43 @@ Suggested checklist:
 - dynamic objects show up and register gaze
 - session properties appear as expected
 - participant properties appear as expected
-- controller and boundary tracking active
-- custom shaders export correctly, if applicable
-- offline or delayed uploads work, if relevant
+- controller and boundary tracking active, where the platform has them (neither exists on Apple Vision Pro)
+- scene geometry exports with correct materials, or the check is marked not applicable because the toolchain cannot export them
+- numeric properties arrive as numbers, not strings (Unreal's one-node Blueprint *Send Custom Event* stringifies; visionOS is typed but its docs example shows only a string)
+- attention findings are described as what the platform measured (head direction on visionOS)
+- any built-in components the plan depends on are present (Unreal)
+- no event exceeds the property cap where one applies (Android XR allows ten)
+- dev and production traffic are separated
+- offline or delayed uploads work, if relevant and supported on this SDK
 - the team can name the first objective or query they will build
+
+Add the SDK-specific checks from the relevant reference file: the Unreal, visionOS, Android XR and WebXR references each carry a troubleshooting quick table, and the Unity reference routes to the Unity troubleshooting and project validation doc pages.
 
 ## 13. Implementation routes
 
-- Custom events: Unity Custom Events → https://docs.cognitive3d.com/unity/customevents/
-- Dynamic objects: Unity Dynamic Objects → https://docs.cognitive3d.com/unity/dynamic-objects/
-- Participant properties: Unity Participants → https://docs.cognitive3d.com/unity/participants/
-- Session properties: Unity Comprehensive Setup → https://docs.cognitive3d.com/unity/comprehensive-setup-guide/
-- Exit polls: Unity ExitPoll → https://docs.cognitive3d.com/unity/exitpoll/
-- Objectives: Dashboard Creating Objectives → https://docs.cognitive3d.com/dashboard/creating-objectives/ (or via MCP server — see `unity_sdk_reference.md` for routes and constraints)
+Include only the column for the project's target SDK.
+
+| Topic | Unity | Unreal | visionOS | Android XR | WebXR |
+| --- | --- | --- | --- | --- | --- |
+| Setup | https://docs.cognitive3d.com/unity/minimal-setup-guide/ | https://docs.cognitive3d.com/unreal/get-started/ | https://docs.cognitive3d.com/visionos/integrating-sdk/ | https://docs.cognitive3d.com/android-xr/installation-integration/ | https://docs.cognitive3d.com/webxr/get-started/ |
+| Custom events | https://docs.cognitive3d.com/unity/customevents/ | https://docs.cognitive3d.com/unreal/customevents/ | https://docs.cognitive3d.com/visionos/custom-events/ | https://docs.cognitive3d.com/android-xr/custom-events/ | https://docs.cognitive3d.com/webxr/events/ |
+| Dynamic objects | https://docs.cognitive3d.com/unity/dynamic-objects/ | https://docs.cognitive3d.com/unreal/dynamic-objects/ | https://docs.cognitive3d.com/visionos/dynamic-objects/ | https://docs.cognitive3d.com/android-xr/dynamic-objects/ | https://docs.cognitive3d.com/webxr/dynamic-objects/ |
+| Session and participant properties | https://docs.cognitive3d.com/unity/comprehensive-setup-guide/, https://docs.cognitive3d.com/unity/participants/ | https://docs.cognitive3d.com/unreal/sessions/, https://docs.cognitive3d.com/unreal/participants/ | https://docs.cognitive3d.com/visionos/session-property/ | https://docs.cognitive3d.com/android-xr/custom-session-properties/ | https://docs.cognitive3d.com/webxr/properties/ |
+| Sensors and automatic capture | https://docs.cognitive3d.com/unity/sensors/ | https://docs.cognitive3d.com/unreal/sensors/ | https://docs.cognitive3d.com/visionos/tracking-hmd/ | https://docs.cognitive3d.com/android-xr/custom-sensors/ | https://docs.cognitive3d.com/webxr/sensors/ |
+| Scenes and uploads | https://docs.cognitive3d.com/unity/scenes/ | https://docs.cognitive3d.com/unreal/scenes/ | https://docs.cognitive3d.com/visionos/uploading-scenes/ | https://docs.cognitive3d.com/android-xr/scene-object-uploads/ | https://docs.cognitive3d.com/webxr/scenes/ |
+| Exit polls | https://docs.cognitive3d.com/unity/exitpoll/ | https://docs.cognitive3d.com/unreal/exitpoll/ | https://docs.cognitive3d.com/visionos/exitpoll/ | not documented; verify live | https://docs.cognitive3d.com/webxr/exitpoll/ |
+| Local cache | https://docs.cognitive3d.com/unity/local-cache/ | https://docs.cognitive3d.com/unreal/local-cache/ | https://docs.cognitive3d.com/visionos/local-cache/ | not documented; verify live | not documented; verify live |
+| Remote controls | https://docs.cognitive3d.com/unity/remote-controls/ | https://docs.cognitive3d.com/unreal/remote-controls/ | not documented; verify live | not documented; verify live | not documented; verify live |
+| Built-in components | https://docs.cognitive3d.com/unity/components/ | https://docs.cognitive3d.com/unreal/built-in-components/ | n/a | n/a | n/a |
+| Platform support | n/a | n/a | https://docs.cognitive3d.com/visionos/get-started/ | https://docs.cognitive3d.com/android-xr/get-started/ | https://docs.cognitive3d.com/webxr/framework-support/ |
+
+The Upload Web App (https://docs.cognitive3d.com/dashboard/upload-webapp/) serves visionOS, Android XR, WebXR and C++, and any other target without in-engine tooling.
+
+SDK-independent:
+
+- Objectives: Dashboard Creating Objectives → https://docs.cognitive3d.com/dashboard/creating-objectives/ (or via MCP server — see the SDK reference for routes and constraints)
 - LMS/xAPI: Dashboard LMS → https://docs.cognitive3d.com/dashboard/lms/
-- Remote controls: Unity Remote Controls → https://docs.cognitive3d.com/unity/remote-controls/
+- Data export and API: https://docs.cognitive3d.com/api/get-started/
 
 ## 14. Open questions and assumptions
 
@@ -257,3 +291,7 @@ Examples:
 - Whether the team wants one project or separate dev and prod projects
 - Whether condition assignment should live on the session or participant
 - Whether the team is ready for the full roadmap or just needs Phase 1 now
+- Whether the experience will also ship on another SDK, and whether the builds should report into one project
+- Which authoring surface carries the instrumentation, on Unreal, and whether numeric properties need a C++ path
+- Whether ExitPoll is available on the target SDK, and what replaces it if not
+- Whether any attention question in the plan survives being restated as head direction, on Vision Pro

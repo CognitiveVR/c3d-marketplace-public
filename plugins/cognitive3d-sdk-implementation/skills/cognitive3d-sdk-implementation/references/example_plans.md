@@ -4,6 +4,10 @@ These examples are intentionally generic.
 
 They are not meant to be copied verbatim. They are meant to show what a good answer looks like after discovery. Adapt the names, events, and properties to the app's real domain language.
 
+For brevity, Examples 1 to 5 omit the **Target SDK** line that a real plan must carry (see `track_plan_template.md` section 1, which requires the SDK and, on Unreal, the Blueprint-versus-C++ authoring surface). Example 6 shows it in place.
+
+Examples 1 to 5 are written for a fully-featured target and assume dynamic objects, exit polls, eye-tracked gaze and unconstrained event properties are all available, so they map cleanly onto Unity and Unreal and need screening anywhere else. On Apple Vision Pro in particular, every attention claim in them has to be restated as head direction. They are not automatically safe elsewhere. Example 4 leans on remote controls and store-platform identity (store identity is Unity-only, remote controls are undocumented on visionOS, Android XR and WebXR); every example places exit poll hooks in Phase 1, which needs confirming on Android XR; and Example 5 uses session tags, which are documented on neither visionOS nor Android XR. Screen any example against `sdk_capability_matrix.md` before reusing its shape. Example 6 shows what a plan looks like once a capability limit is taken seriously rather than worked around.
+
 ---
 
 ## Example 1: Fire safety simulation
@@ -235,3 +239,64 @@ This plan makes it possible to:
 - analyze responses at trial and block level, not just study level
 - spot protocol deviations and dropouts instead of silently losing them
 - keep research governance data separate from behavioral analytics
+
+
+---
+
+## Example 6: Browser-based product configurator (WebXR, PlayCanvas)
+
+Included to show how a capability limit changes a plan rather than merely shrinking it.
+
+### Project readback
+
+- The experience is a WebXR product configurator embedded in a retail site: customers open it from a product page, enter immersive mode on a headset or view it on desktop, and compare finishes and configurations.
+- The users are prospective consumers, anonymous, mostly single-session.
+- The team needs to know which configurations get explored, which get abandoned, and whether the experience shortens or lengthens the path to a quote request.
+- **Motion:** Exploration and evaluation
+- **Archetype:** Exploration or object-interaction loop
+- **Overlays:** Content catalog, multi-SDK delivery (a Unity showroom build exists for trade shows)
+- **Target SDK:** WebXR on PlayCanvas
+
+### What the SDK constrains
+
+PlayCanvas supports the core API, WebXR gaze, performance sensors, custom events, sensors, exit polls and properties, but **not dynamic objects, object export or per-object heatmaps**. The obvious plan for an exploration-archetype project leans heavily on dynamic objects, so that part is unavailable and the plan has to answer the same questions differently.
+
+The substitute is custom events carrying an object identifier property. Say plainly what is lost: you will know which components the customer interacted with and in what order, but not what they looked at without touching, and not how long attention rested on each. If dwell-before-action is a question the team genuinely needs answered, the honest recommendation is to move the experience to the Three.js adapter, not to fudge it.
+
+### Phase 1
+
+Priorities:
+- `configurator_started`, `configurator_ended` with `duration_seconds`, `exit_reason`
+- `ftue_stage_started`, `ftue_stage_completed` with `stage_name`, `duration_seconds`
+- `component_inspected` with `component_id`, `component_name`, `interaction_order` — the dynamic object substitute
+- Session properties: `product_line`, `entry_point`, `development_mode`, `session_device_class`
+- `development_mode` set from the build environment, non-negotiable: there is no editor exclusion on WebXR
+- Exit poll hook at the end, **plus the in-scene survey UI**, scoped as its own task
+- Scene uploaded through the Upload Web App, with `sceneId` and `versionNumber` wired into `allSceneData`
+
+### Phase 2
+
+Add:
+- `configuration_changed` with `option_category`, `option_id`, `previous_option_id`
+- `configuration_saved`, `quote_requested` with `configuration_hash`
+- `comparison_opened` with `option_ids`, `comparison_duration_seconds`
+- Participant ID from the site's existing account system where the customer is logged in; anonymous otherwise, and say so rather than inventing a browser-local identifier
+- Objective: reached a saved configuration
+- Sensor: `active_options_count`, sampled on change
+
+### Phase 3
+
+Add:
+- `ui_opened` / `ui_selected` for the option panels
+- Variant tracking for configurator layouts, with the condition assigned by the site's own feature-flag service and recorded as a session property, since remote controls are not documented for WebXR
+- Deeper post-session preference survey
+
+### Why this plan works
+
+This plan makes it possible to:
+- see which configurations are explored and which are abandoned, without object-level gaze
+- connect configurator behavior to quote requests
+- compare entry points and device classes, both free from the platform's built-in fields
+- keep local development traffic out of the dashboard from day one
+
+And it keeps the Unity showroom build comparable: `component_id`, `configuration_hash` and the event names are identical across both, so the two builds query as one series instead of two.

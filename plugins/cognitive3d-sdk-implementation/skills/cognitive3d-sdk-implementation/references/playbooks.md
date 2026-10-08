@@ -4,6 +4,10 @@ Use this file **after** discovery and **after** reading `data_strategy.md`.
 
 Do not paste the whole file into the answer. Pull only the playbook or overlay sections that fit the project.
 
+**This file is SDK-neutral.** The archetypes describe the shape of an experience, not the engine it runs on. Several recommendations here are unavailable on some SDKs and frameworks, so screen the finished plan against `sdk_capability_matrix.md` before presenting it. The ones that bite most often: **dynamic objects** (everywhere except WebXR outside Three.js and Mattercraft), **remote controls** and **multiplayer components** (Unity and Unreal only), **ExitPoll** (not documented for Android XR), **audio recording** and **store-platform identity** such as Oculus Social or Steam (Unity only). Three further checks this file cannot make for you: on **Unreal**, whether the comfort, framerate and boundary metrics a playbook assumes are backed by built-in components the team actually added, and whether numeric properties go through the typed *Make Custom Event* nodes or C++ rather than the one-node *Send Custom Event*; on **Android XR**, whether any event exceeds the ten-property cap; on **visionOS**, whether any recommendation here treats gaze as eye attention, which that platform cannot provide.
+
+The gaze point deserves emphasis because it is invisible in a plan that reads correctly: every archetype below that says "gaze", "attention" or "fixation" means head direction on Apple Vision Pro. See `field_notes.md` → _Gaze is not the same measurement on every platform_.
+
 ## How to use this file
 
 1. Choose the best-fit archetype from the classification in SKILL.md.
@@ -45,7 +49,7 @@ Common fits: training simulation, SOP walkthrough, onboarding with formal pass/f
 
 ### Recommended dynamic objects
 
-Use for: critical tools/equipment, safety objects, instruction panels, control surfaces, target objects, objects in objectives. Only include objects where attention or interaction changes interpretation. Remember: adding the component is not enough — meshes must be exported and uploaded via Feature Builder > Dynamic Objects.
+Use for: critical tools/equipment, safety objects, instruction panels, control surfaces, target objects, objects in objectives. Only include objects where attention or interaction changes interpretation. Remember: registering the object in the app is not enough — meshes must be exported and uploaded separately from the scene, on every SDK (see the SDK reference for the project's target).
 
 ### Recommended session properties
 
@@ -124,7 +128,7 @@ Common fits: games, narrative adventures, puzzle apps, progression-based interac
 
 ### Recommended dynamic objects
 
-Good candidates: portals and wayfinding, core weapons or tools, tutorial targets, instruction surfaces, HUD/maps if attention matters, interactable objects that gate progression. Remember: adding the component is not enough — meshes must be exported and uploaded via Feature Builder > Dynamic Objects.
+Good candidates: portals and wayfinding, core weapons or tools, tutorial targets, instruction surfaces, HUD/maps if attention matters, interactable objects that gate progression. Remember: registering the object in the app is not enough — meshes must be exported and uploaded separately from the scene, on every SDK (see the SDK reference for the project's target).
 
 ### Recommended session properties
 
@@ -196,7 +200,7 @@ Common fits: fitness apps, meditation apps, music practice or instrument trainer
 
 ### Recommended dynamic objects
 
-Good candidates: instructors or trainer objects, helper objects, musical instruments or practice tools, key player UI surfaces, navigation tablets or watches, content hotspots. Remember: adding the component is not enough — meshes must be exported and uploaded via Feature Builder > Dynamic Objects.
+Good candidates: instructors or trainer objects, helper objects, musical instruments or practice tools, key player UI surfaces, navigation tablets or watches, content hotspots. Remember: registering the object in the app is not enough — meshes must be exported and uploaded separately from the scene, on every SDK (see the SDK reference for the project's target).
 
 ### Recommended session properties
 
@@ -271,7 +275,7 @@ Common fits: product evaluation, prototype comparison, virtual retail, showrooms
 
 ### Recommended dynamic objects
 
-Especially high-value here. Good candidates: each item/prototype, major components, packaging/label surfaces, signage, comparison surfaces. Remember: adding the component is not enough — meshes must be exported and uploaded via Feature Builder > Dynamic Objects.
+Especially high-value here. Good candidates: each item/prototype, major components, packaging/label surfaces, signage, comparison surfaces. Remember: registering the object in the app is not enough — meshes must be exported and uploaded separately from the scene, on every SDK (see the SDK reference for the project's target).
 
 ### Recommended session properties
 
@@ -303,7 +307,7 @@ Usually relevant: cohort tags, shared-device study stations, survey-heavy flow, 
 
 - **Shared-device study stations need explicit participant ID.** Lab and kiosk setups are shared-device environments. See field note: _Shared devices: device ID is not enough_.
 - **Dynamic objects are especially high-value here.** Each prototype as a dynamic object gives gaze and fixation data tied to the specific item. See field note: _Dynamic objects: quality over quantity_.
-- **Exit polls are often essential, not optional.** Behavioral data and self-report together tell the story. Place hooks early. See field note: _Exit poll hooks are nearly free — place them early_.
+- **Exit polls are often essential, not optional.** Behavioral data and self-report together tell the story. Place hooks early. See field note: _Exit poll hooks are cheap on most SDKs, expensive on WebXR, and unconfirmed on Android XR_.
 
 ### Common mistakes
 
@@ -346,7 +350,7 @@ Common fits: academic studies, UX experiments, repeated-measure protocols, pilot
 
 ### Recommended dynamic objects
 
-Good candidates: stimuli, fixation targets, key interactive objects, instruction surfaces, response surfaces. Remember: adding the component is not enough — meshes must be exported and uploaded via Feature Builder > Dynamic Objects.
+Good candidates: stimuli, fixation targets, key interactive objects, instruction surfaces, response surfaces. Remember: registering the object in the app is not enough — meshes must be exported and uploaded separately from the scene, on every SDK (see the SDK reference for the project's target).
 
 ### Recommended session properties
 

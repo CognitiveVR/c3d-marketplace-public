@@ -14,10 +14,39 @@
       "category": "development"
     },
     {
-      "name": "cognitive3d-unity-implementation",
-      "description": "Cognitive3D Unity SDK implementation strategy — guides discovery, data strategy, phased instrumentation, and technical routing for VR/AR/MR analytics.",
-      "source": "./plugins/cognitive3d-unity-implementation",
+      "name": "cognitive3d-sdk-implementation",
+      "description": "Cognitive3D SDK implementation strategy across Unity, Unreal, visionOS, Android XR, WebXR and C++ — guides SDK identification, discovery, data strategy, phased instrumentation, and technical routing for VR/AR/MR/WebXR analytics.",
+      "source": "./plugins/cognitive3d-sdk-implementation",
       "category": "development"
+    },
+    {
+      "name": "cognitive3d-ros2-integration",
+      "description": "Integrate the Cognitive3D SDK for ROS 2 into a robot that already works — survey the live robot, decide each parameter from measurements, write the params file, wire launch, run doctor and verify the first session. Served from the SDK repository at its release tag, so the skill always matches the SDK version.",
+      "version": "1.0.0",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/CognitiveVR/c3d-sdk-ros2.git",
+        "path": ".claude",
+        "ref": "v1.0.0",
+        "sha": "f327d29a92ccda5e5406c18026bf0df844d4d364"
+      },
+      "category": "robotics",
+      "homepage": "https://github.com/CognitiveVR/c3d-sdk-ros2",
+      "keywords": [
+        "cognitive3d",
+        "c3d",
+        "ros2",
+        "ros",
+        "robotics",
+        "nav2",
+        "turtlebot",
+        "robot-analytics",
+        "sdk",
+        "integration"
+      ]
     }
-  ]
+  ],
+  "renames": {
+    "cognitive3d-unity-implementation": "cognitive3d-sdk-implementation"
+  }
 }
