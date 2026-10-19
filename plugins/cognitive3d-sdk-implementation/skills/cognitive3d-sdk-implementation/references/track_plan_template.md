@@ -150,9 +150,14 @@ Use a table like this.
 | `example_ended` | when the activity ends | activity_id, duration_seconds, outcome | supports completion and outcome analysis | completion and drop-off |
 
 Guidelines:
-- Use stable event names
+- Use stable snake_case event names, no app prefix, identical across sibling apps
 - Put variation into properties
 - Include `_seconds` on time fields
+- Per noun, one readable label plus at most one linking ID
+- Nothing the platform already records (scene, timestamp, session length), nothing constant across every session, no engine paths, class or function names, nothing that restates the event name
+- One field for how it ended: `outcome`, lower-case enum values
+- Ordinals 1-based: `_number` for a fixed sequence, `_order` for the order a person did things; state each counter's scope
+- Say which events carry context properties (attempt, module, mode) and which do not
 - Keep only events that answer a real question
 - For a quick plan, include only Phase 1 events (typically 4–8)
 - For brownfield projects, add the **Status** column described below
@@ -224,6 +229,8 @@ List the first objectives or dashboard reads the team should create.
 
 The goal is to name the first useful analysis surfaces, not just the raw data.
 
+For step-based modules: one objective per readable module name, step conditions matched on the stable `step_id` (never on the ordinal, which shifts when a step is inserted), listed in `step_number` order. Use the ordinal only to prove a run was gap-free. See field note: _Objectives for step-based modules_.
+
 ## 11. Exit poll plan
 
 | Hook location | Purpose | Question type | Notes |
@@ -245,6 +252,10 @@ Suggested checklist:
 - controller and boundary tracking active, where the platform has them (neither exists on Apple Vision Pro)
 - scene geometry exports with correct materials, or the check is marked not applicable because the toolchain cannot export them
 - numeric properties arrive as numbers, not strings (Unreal's one-node Blueprint *Send Custom Event* stringifies; visionOS is typed but its docs example shows only a string)
+- property audit on one real session's payloads: no property with one value across every session, no noun with more than one label or more than one ID, no engine path, class or function name as a value, no field the platform records on its own, ordinals gap-free from 1 on a complete run (`get_field_values` per custom property when an MCP server is connected)
+- no events from credential entry, none per keystroke
+- objectives validated against a session where someone knows the ground truth
+- step labels, types and configured counts read through before launch; they are immutable once recorded
 - attention findings are described as what the platform measured (head direction on visionOS)
 - any built-in components the plan depends on are present (Unreal)
 - no event exceeds the property cap where one applies (Android XR allows ten)

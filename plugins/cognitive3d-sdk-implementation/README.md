@@ -14,6 +14,7 @@ Activates the `cognitive3d-sdk-implementation` skill, which guides Claude throug
 - **Phased implementation** — builds prioritized track plans (custom events, dynamic objects, exit polls, session properties)
 - **Capability screening** — keeps plans inside what the target SDK and platform can actually do: WebXR capability varies by adapter, several Unreal metrics come from opt-in components rather than automatic capture, Android XR caps events at ten properties with no documented ExitPoll, Apple Vision Pro exposes no eye tracking to any app, and the C++ SDK captures nothing automatically
 - **Technical routing** — points to the correct SDK APIs and dashboard docs
+- **Property hygiene** — one label plus at most one linking ID per noun, nothing the platform already records, no constant-valued or engine-named properties, no events from credential entry, and a payload audit before sign-off. Added in 2.4.0 after the first step-based Unreal implementation shipped engineering telemetry instead of readable events
 
 The strategy layer is SDK-neutral. Only the technical reference changes between targets.
 

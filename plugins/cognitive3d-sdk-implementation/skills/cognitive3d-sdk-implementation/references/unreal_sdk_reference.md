@@ -193,7 +193,9 @@ if (cognitive.IsValid())
 }
 ```
 
-For events with a duration, use a persistent `UCustomEvent` object, which times itself between construction and `Send()`:
+**A plain `Send()` attaches no duration.** None of the name-plus-properties paths (C++ `customEventRecorder->Send(...)`, the Blueprint `Send Custom Event` node, the engine analytics `RecordEvent`) add one; they serialise name, time, position and the properties you pass. For events with a duration, either send an explicit `duration_seconds` you measured, or use a persistent `UCustomEvent` object, which times itself from construction (the `Make Custom Event` node, or `NewObject<UCustomEvent>`) to `Send()` and adds a float property named `duration` in seconds, every time, with no minimum threshold. Create the object when the thing starts, not when it ends, or the duration is near zero. Do not reuse one object for several sends: its property maps are never cleared, so every earlier property is re-sent and `duration` keeps growing from the original construction time.
+
+`UCustomEvent` methods:
 
 | Method | Purpose |
 | --- | --- |
@@ -205,6 +207,10 @@ For events with a duration, use a persistent `UCustomEvent` object, which times 
 | `Send()` | record and transmit |
 
 Position and HMD position are recorded automatically when not supplied, so unlike WebXR the position argument is optional.
+
+**Which identity to send.** An Unreal asset has several names and only one of them belongs in an event. `GetPathName()` returns the content path (`/Game/Maintenance/Data/TRN_PumpInspectionStory_DA.TRN_PumpInspectionStory_DA`); `GetName()` returns the asset or actor name (`TRN_PumpInspectionStory_DA`, `BP_PumpHousing_2`); a `UEnum` has an internal name (`TutorialMode`) and a display name (`Tutorial`); a Data Asset usually has a hand-authored display string that the app's own menus show (`Pump Inspection`). Send the display string as the label, and an ID only where something must join on it (a step key, a tracked object). Never send the path or the class, and never send the name of the function that fired the event (`OnStepCompleted` as a `source` property tells a dashboard reader nothing). Write down, per noun, which getter the value comes from before instrumenting; the first review of an Unreal integration otherwise finds the same module arriving four ways.
+
+**The shared-serializer trap.** The natural Blueprint pattern is one function-library node that builds the property map (attempt, module, mode, step, scene, timestamp) and every event calls it. The result is the same dozen-plus properties on every event, including lobby clicks that have no step and login events that have no module. Curate per event: a helper may add attempt and module context inside a module attempt, but each event adds its own fields, and events outside an attempt carry none of the attempt fields. The SDK adds no properties of its own to a custom event, so a uniform property set across every event is always the app's serializer.
 
 **The Blueprint typing trap, restated because it matters:** the one-node `Send Custom Event` takes `TArray<AnalyticsEventAttr>` and **converts every property value to a string**. The typed path keeps them: in Blueprint, `Make Custom Event` then `Set Float Property` / `Set Integer Property` / `Set Bool Property` / `Set String Property`, then send; in C++, `FJsonObject` with `SetNumberField` and friends. Any numeric property that must be averaged, charted, bucketed or compared numerically has to go through one of those. When auditing an existing Unreal integration, check which nodes are in use before concluding the properties are fine; this failure is invisible until someone tries to chart a duration.
 
@@ -496,6 +502,9 @@ Sourced from https://docs.cognitive3d.com/unreal/troubleshooting/ and the pages 
 | No sessions, actor present | scene has no Scene Id, or was never uploaded |
 | Sessions exist but replay has no geometry | level not exported and uploaded, or uploaded under a different name |
 | Numeric properties cannot be charted or averaged | events sent through the one-node Blueprint `Send Custom Event`, which stringifies all values; use the `Make Custom Event` nodes or C++ |
+| Every custom event carries the same property set | one shared serializer in a Blueprint function library; curate properties per event (see "The shared-serializer trap" above) |
+| Same module or object arrives under several names and paths | `GetPathName()`, `GetName()` and display strings all sent; send the display string plus at most one linking ID (see "Which identity to send" above) |
+| `c3d.sessionEnd` shows "Application stopped sending data", or appears twice | the SDK never sent an end event (app closed from the headset), so the platform synthesised one at the last head sample; a late cached SDK end can then arrive as a second. Do not build completion or session-length metrics on `c3d.sessionEnd` for such an app; see `data_strategy.md`, "Session end is synthetic when the SDK never sent one" |
 | GLTF export crashes | Forward Shading enabled; disable it in Engine > Rendering for the export, then re-enable |
 | Textures wrong in replay | complex materials do not translate; make the diffuse output representative |
 | Meshes missing from export | TextRenderers are unsupported; skeletal meshes need UE 4.26+ for materials |
