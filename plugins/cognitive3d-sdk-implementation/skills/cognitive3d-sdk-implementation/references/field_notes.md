@@ -409,6 +409,6 @@ Two things did not map to zones and stayed as events: backtracking (a zone sees 
 
 The operational lesson runs the other way. Zones count visits only in sessions recorded after the zone is saved, and a zone objective evaluates from the same date. A team that runs its validation sessions and then draws zones has zones with no data and objectives that evaluate nothing. Draw first.
 
-Generated or procedurally built scenes multiply the work: a zone's shapes live on a scene, so forty generated layouts need forty sets of shapes, and today each set is a dashboard task. Programmatic zone creation through the MCP server is planned; until it lands, scope zones on generated-scene projects to the few that answer the top question.
+Generated or procedurally built scenes multiply the work: a zone's shapes live on a scene, so forty generated layouts need forty sets of shapes. Drawn by hand that is forty dashboard sessions; through the MCP server's `create_zone_from_shapes` it is one call per scene, so keep the zone definitions beside the scene generator and create them from there, and still scope them to the few that answer the top question.
 
 **Recommendation:** When an audit finds area, room, doorway, waypoint or dwell events, or scene-inventory events, mark them `Retire` or `Replaces` in favour of zones, and say what the zone cannot see (direction, backtracking, in-place actions) so the events that stay are kept deliberately. Put "zones drawn and saved" ahead of "validation sessions run" in every plan that has a zone.

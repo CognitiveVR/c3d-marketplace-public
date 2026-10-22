@@ -202,7 +202,7 @@ Do not list every object in the scene. Only include decision-relevant objects.
 
 ### Zones
 
-Zones are drawn on the dashboard, not in the app, and count visits only in sessions recorded after they are saved. List the places the plan needs to measure and who will draw them, and schedule the drawing before the validation sessions. See _Zone or event?_ in `data_strategy.md`.
+Zones are drawn on the dashboard or created through the MCP server, not in the app, and count visits only in sessions recorded after they are saved. List the places the plan needs to measure and who will create them, and schedule that before the validation sessions. See _Zone or event?_ in `data_strategy.md`.
 
 | Zone | Scene(s) | Shape | Visit type | Related question | Report or objective use |
 | --- | --- | --- | --- | --- | --- |

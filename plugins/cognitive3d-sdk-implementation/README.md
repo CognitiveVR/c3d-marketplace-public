@@ -15,7 +15,7 @@ Activates the `cognitive3d-sdk-implementation` skill, which guides Claude throug
 - **Capability screening** — keeps plans inside what the target SDK and platform can actually do: WebXR capability varies by adapter, several Unreal metrics come from opt-in components rather than automatic capture, Android XR caps events at ten properties with no documented ExitPoll, Apple Vision Pro exposes no eye tracking to any app, and the C++ SDK captures nothing automatically
 - **Technical routing** — points to the correct SDK APIs and dashboard docs
 - **Property hygiene** — one label plus at most one linking ID per noun, nothing the platform already records, no constant-valued or engine-named properties, no events from credential entry, and a payload audit before sign-off. Added in 2.4.0 after the first step-based Unreal implementation shipped engineering telemetry instead of readable events
-- **Zones** — any place-shaped question (reached, dwelled, looked at an area) becomes a dashboard-drawn zone rather than a custom event, with the three visit types, the save-date rule, the Zones report and zone objectives spelled out, and a zone table in the plan template. Added in 2.5.0 after a navigation-heavy project shipped area, doorway and scene-inventory events that zones cover. Programmatic zone creation through the MCP server is pending and the guidance will grow when it ships
+- **Zones** — any place-shaped question (reached, dwelled, looked at an area) becomes a dashboard-drawn zone rather than a custom event, with the three visit types, the save-date rule, the Zones report and zone objectives spelled out, and a zone table in the plan template. Added in 2.5.0 after a navigation-heavy project shipped area, doorway and scene-inventory events that zones cover. Covers the MCP server's zone tools too (list, visits, create from shapes), which is what makes zones practical on generated-scene projects
 
 The strategy layer is SDK-neutral. Only the technical reference changes between targets.
 
@@ -103,7 +103,7 @@ You'll need a Cognitive3D account and access to a Unity, Unreal, visionOS, Andro
 ## Related
 
 - `cognitive3d-public-api` (same marketplace) — REST API query construction and data pipelines
-- [Cognitive3D MCP server](https://docs.cognitive3d.com/mcp-server/getting-started/) — live project reads plus objective and ExitPoll configuration (zone creation is not available yet)
+- [Cognitive3D MCP server](https://docs.cognitive3d.com/mcp-server/getting-started/) — live project reads plus objective, ExitPoll and zone configuration
 - [Zones](https://docs.cognitive3d.com/dashboard/zones/) — dashboard documentation for drawing zones, the Zones report and zone objectives
 
 ## Contributing
