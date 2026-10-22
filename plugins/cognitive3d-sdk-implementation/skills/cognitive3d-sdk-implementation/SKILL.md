@@ -1,6 +1,6 @@
 ---
 name: cognitive3d-sdk-implementation
-description: "Cognitive3D SDK implementation strategy across engines and platforms — Unity, Unreal Engine, native Apple Vision Pro (visionOS), native Android XR (Jetpack XR and Meta Spatial SDK), WebXR (Three.js, Mattercraft, Wonderland, PlayCanvas, Babylon, plain WebXR), and the standalone C++ SDK for custom engines. Use this skill whenever someone asks about integrating Cognitive3D analytics, planning what to track, setting up the SDK, creating a tracking plan, or implementing custom events/dynamic objects/exit polls/session properties. Also use when the user mentions Cognitive3D, C3D, @cognitive3d/analytics, cvr-sdk-unreal, cvr-sdk-cpp, BP_Cognitive3DActor, Cognitive3DManager, Cognitive3DAnalyticsCore, CognitiveVRAnalyticsCore, cognitive3d_ros, com.cognitive3d, Apple Vision Pro, XR analytics, spatial analytics, or wants to instrument a VR/AR/MR/WebXR application for behavioral data collection. This covers the full workflow: SDK identification, discovery, data strategy, phased implementation, and technical routing."
+description: "Cognitive3D SDK implementation strategy across engines and platforms — Unity, Unreal Engine, native Apple Vision Pro (visionOS), native Android XR (Jetpack XR and Meta Spatial SDK), WebXR (Three.js, Mattercraft, Wonderland, PlayCanvas, Babylon, plain WebXR), and the standalone C++ SDK for custom engines. Use this skill whenever someone asks about integrating Cognitive3D analytics, planning what to track, setting up the SDK, creating a tracking plan, or implementing custom events/dynamic objects/exit polls/session properties/zones, or wants to measure presence, attention or dwell time in areas of a scene. Also use when the user mentions Cognitive3D, C3D, @cognitive3d/analytics, cvr-sdk-unreal, cvr-sdk-cpp, BP_Cognitive3DActor, Cognitive3DManager, Cognitive3DAnalyticsCore, CognitiveVRAnalyticsCore, cognitive3d_ros, com.cognitive3d, Apple Vision Pro, XR analytics, spatial analytics, or wants to instrument a VR/AR/MR/WebXR application for behavioral data collection. This covers the full workflow: SDK identification, discovery, data strategy, phased implementation, and technical routing."
 ---
 
 # Cognitive3D SDK Implementation Strategy
@@ -51,7 +51,7 @@ The strategy layer (what to track and why) is shared across every target. Only t
 
 This skill works standalone, but two companions make it materially better. Mention them when relevant; never require them.
 
-- **Cognitive3D MCP server** — read tools (`list_slicer_fields`, `get_field_values`, `get_scene_sessions`, `query_data`, and others) turn validation and data questions into live lookups instead of dashboard round-trips, and objectives/ExitPoll configuration can be done programmatically (see Step 7). The MCP is SDK-agnostic: it talks to the platform, not to the app, so everything here applies equally on every target. It earns the most on Android XR, WebXR and C++, which have the least local tooling for confirming that data actually arrived. If the team will use AI tooling against their data, recommend setting it up: https://docs.cognitive3d.com/mcp-server/getting-started/. **The MCP and `references/queryable_data.md` answer different questions — use both.** The reference describes the platform's built-in fields with units and planning implications; `list_slicer_fields` tells you what a *specific* project actually holds, including its own custom properties and events. Confirm a field exists in the target project with the MCP; decide what is worth tracking from the reference.
+- **Cognitive3D MCP server** — read tools (`list_slicer_fields`, `get_field_values`, `get_scene_sessions`, `query_data`, and others) turn validation and data questions into live lookups instead of dashboard round-trips, and objectives/ExitPoll configuration can be done programmatically (see Step 7). Zones cannot yet be created through the MCP: they are drawn on the dashboard (see _Zone or event?_ in `references/data_strategy.md`). The MCP is SDK-agnostic: it talks to the platform, not to the app, so everything here applies equally on every target. It earns the most on Android XR, WebXR and C++, which have the least local tooling for confirming that data actually arrived. If the team will use AI tooling against their data, recommend setting it up: https://docs.cognitive3d.com/mcp-server/getting-started/. **The MCP and `references/queryable_data.md` answer different questions — use both.** The reference describes the platform's built-in fields with units and planning implications; `list_slicer_fields` tells you what a *specific* project actually holds, including its own custom properties and events. Confirm a field exists in the target project with the MCP; decide what is worth tracking from the reference.
 - **`cognitive3d-public-api` skill** (same marketplace) — for REST API query construction, data pipelines, and programmatic exports. Route there when the developer's question is "how do I pull this data out," not "what should I track."
 
 ---
@@ -392,6 +392,7 @@ Before proceeding to recommendations, create a progress tracker file for this cl
 | A value describes the whole session | Session property |
 | A value describes the person across sessions | Participant property |
 | Object seen, used, moved, or fixated | Dynamic object. On visionOS "seen" means faced: the platform exposes no eye tracking |
+| Presence, attention or dwell time in a place (a bay, a workbench, a doorway, a room) | Zone. Drawn on the dashboard and computed from the head position and gaze the platform already records, so no code, no build and no SDK dependency. Counts visits only in sessions recorded after the zone is saved. See _Zone or event?_ in `references/data_strategy.md` |
 | Completion logic or sequences | Objective |
 | Self-reported feedback or cohort questions | Exit poll |
 | Continuous value sampled over time (physiological, performance, gameplay telemetry) | Sensor. **How much is recorded for free varies sharply by SDK** — check `sdk_capability_matrix.md` |
@@ -496,6 +497,7 @@ Every plan should end with a validation plan confirming:
 - Key events fire with correct properties
 - Dynamic object meshes uploaded (a separate step from scene upload, on every SDK)
 - Dynamic objects visible in replay with gaze data
+- Zones drawn and saved on every scene version the plan names before the validation sessions run. Visits count only in sessions recorded after save, and a zone objective evaluates from the same date, so confirm each zone's "Collecting since" date predates the first validation session
 - Session and participant properties populated
 - Scene geometry exports with correct materials, where the toolchain supports materials at all (some WebXR adapters export geometry only, or do not export; mark the check N/A rather than failed)
 - Controller and boundary tracking active, where the platform has them: mark both not applicable on visionOS, which has neither controllers nor a boundary concept. Allow for the WebXR prerequisite that room-size data needs a `bounded-floor` session, and for Unreal's requirement that the corresponding built-in components are present
@@ -520,7 +522,7 @@ Add the SDK-specific validation items from the relevant reference file. The Unre
 
 If the SDK is already partially integrated, do not start from scratch. Instead:
 
-1. **Audit the existing instrumentation** against the universal baseline in `references/data_strategy.md`. Which of the 12 baseline items are already in place? Which are missing? Audit payloads, not the event-name list: pull one raw session's events and map properties per event name before judging coverage. A name list undersells what is there (properties often already cover the gaps the names suggest) and hides what is wrong (a shared context bag, four identities for one noun, constant-valued fields). Never propose new events from the name list alone. See field note: _Audit the payloads, not the event list_.
+1. **Audit the existing instrumentation** against the universal baseline in `references/data_strategy.md`. Which of the 12 baseline items are already in place? Which are missing? Audit payloads, not the event-name list: pull one raw session's events and map properties per event name before judging coverage. A name list undersells what is there (properties often already cover the gaps the names suggest) and hides what is wrong (a shared context bag, four identities for one noun, constant-valued fields). Never propose new events from the name list alone. See field note: _Audit the payloads, not the event list_. Map any area, room, doorway, waypoint or dwell events the app already sends to zones and mark them accordingly; see _Zone or event?_ in `references/data_strategy.md`.
 2. **Map the execution architecture.** Before recommending where to add analytics, understand how existing code actually gets executed. Analytics must be placed on paths that are live at runtime.
    - *Unity*: projects often have multiple execution paths (MonoBehaviour callbacks, custom event systems, visual scripting, timelines, coroutine sequencers). Search the scene file by script GUID to confirm which scripts are attached to GameObjects. Code existence does not imply scene presence — Unity projects have a dual nature: code (readable from files) and scene state (configured in the Editor, only partially readable from YAML). Confirm with the developer which scripts are active in the scene.
    - *Unreal*: confirm which level actually contains `BP_Cognitive3DActor`, since its presence is what makes a session record at all. Then check whether instrumentation lives in Blueprint graphs, C++ classes, or both, and whether the graphs carrying it are reachable at runtime. A Blueprint node sitting in an unreferenced graph is the Unreal form of a script attached to nothing. Audit the Blueprint-versus-C++ split for custom events specifically: Blueprint-sent properties arrive as strings, so an integration can look complete and still be unqueryable for anything numeric.
@@ -560,7 +562,7 @@ These apply to almost every Cognitive3D project, on every SDK. See `references/d
 
 1. Primary activity lifecycle (start/end pair)
 2. Onboarding / FTUE stages with durations
-3. Key dynamic objects (only where they answer a question, and only where the SDK supports them)
+3. Key dynamic objects and zones (only where they answer a question; dynamic objects only where the SDK supports them, zones wherever the question is about a place, drawn before the validation sessions)
 4. Session context properties
 5. Participant identity (when cross-session analysis matters)
 6. Dev vs production separation
@@ -616,6 +618,7 @@ A strong recommendation should be:
 24. Sending several identities for one noun (display name, short key, asset name, asset path) when one label and at most one linking ID is enough
 25. Emitting events from credential entry, or per keystroke anywhere; key presses reveal password length and typing rhythm even without the key value
 26. Restating the event name as a property (`completed = true` on `step_completed`), or sending values the platform already records (scene, timestamp, session length)
+27. Emitting custom events for entering, leaving or dwelling in a place, or sending the scene's area and furniture inventory as events, when a zone or the dynamic object manifest already answers it with no build
 
 ---
 

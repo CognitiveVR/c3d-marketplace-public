@@ -88,6 +88,7 @@ _Capture anything unusual, constraints, or context that doesn't fit the question
 | Participant properties | `Not started` / `N/A` / `Done` | |
 | Success metrics / outcome events | `Not started` / `In progress` / `Done` | |
 | Objectives created | `Not started` / `In progress` / `Done` | |
+| Zones drawn and saved | `Not started` / `N/A` / `Done` | Dashboard task, before the validation session; note each zone's Collecting since date |
 | Content/prototype metadata | `Not started` / `N/A` / `Done` | |
 | Validation session run | `Not started` / `In progress` / `Done` | |
 

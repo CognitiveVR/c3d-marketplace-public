@@ -88,6 +88,7 @@ A large percentage of bad instrumentation comes from using the wrong primitive.
 | A value describes the whole session | Session property | Best for filtering, grouping, and cohort comparison |
 | A value describes the person across sessions | Participant property | Belongs on the participant profile, not inside every session |
 | Need to know what object was seen, used, moved, or fixated | Dynamic object | Adds object-level context for replay, gaze, and objectives. **Not available on every SDK and framework** — check `sdk_capability_matrix.md` before planning one |
+| Presence, attention or dwell time in a place | Zone | Named shapes drawn on a scene from the dashboard. The platform records when each session enters and leaves and how long it stays, from the head position and gaze it already captures, so a zone needs no code and no new build. Counts visits only in sessions recorded after it is saved. See [Zone or event?](#zone-or-event) |
 | Measure completion logic or sequences | Objective | Turns events, gaze, and survey responses into success logic. Created on the dashboard or programmatically via the MCP server with a write-enabled organization key |
 | Self-reported feedback or cohort questions | Exit poll | Best for sentiment, preference, confidence, and study questions. Question sets are created on the dashboard or programmatically via the MCP server with a write-enabled organization key |
 | Continuous value sampled over time | Sensor | Time-series charted on the session timeline; aggregates (avg/min/max) queryable. **How much arrives automatically varies sharply by SDK** — broad on Unity, opt-in components on Unreal, narrow on visionOS, FPS only on Android XR — so check `sdk_capability_matrix.md` before assuming a stream is free. Custom sensors capture app-specific continuous values |
@@ -111,6 +112,42 @@ Example:
 - `step_completed` is an event
 - "completed all required steps in order" is an objective
 
+### Zone or event?
+
+A zone is a named area drawn on a scene from the dashboard (Scenes, then the scene version, then the Zones tab). Once saved, the platform records a visit each time a session enters and leaves it, with entry time, exit time and duration, from the head position and gaze data it already captures. No code, no build, no SDK dependency: zones behave the same on every target that sends head position, and the gaze-based visit types on every target that sends gaze.
+
+**If the question is about a place, use a zone, not an event.** "Did they reach the inspection point", "how long did they spend at the workbench", "which bay did they visit first", "did they pass through the doorway" and "which areas of the store draw attention" are zone questions. Emitting `area_entered`, `area_exited`, `doorway_passed` or `zone_dwell` events for them duplicates something the platform computes for free, costs a build to change, and cannot be redrawn after the fact. Sending the scene's own layout as events (`scene_area` and `scene_object` inventories at session start) is the same mistake one level up: the scene upload and the dynamic object manifest already describe the scene.
+
+What a zone records:
+
+- Three visit types, all tracked at once. **Head position** counts a visit while the participant's head is inside the zone. **Gazed in** counts a visit while the point they are looking at is inside it. **Gazed through** counts a visit while their line of sight passes through it. Head position is presence; the gaze types are attention from a distance.
+- Visits shorter than 0.5 seconds are ignored and visits separated by less than 0.5 seconds are merged, so a zone is not a frame-accurate trigger.
+- A zone is one or more shapes (rectangle, circle or sphere, height-limited or infinitely tall), and its shapes can sit on different scenes, so a visit continues across a scene change as long as the new scene contains one of the zone's shapes.
+
+Where a zone surfaces:
+
+- The **Zones report** dashboard template: sessions visiting a zone, sessions by zone, zone map, zone heatmap, share of time by zone, time in zone, first zone entered, and visiting sessions over time. The same widgets go on custom dashboards from the Spatial category. The report reads head-position visits.
+- **Zone objectives.** A zone step names a zone, a visit type, an occurrence count and an optional minimum dwell per visit ("reach the safety area at least twice and stay 10 seconds each time"). Zone steps combine with event, gaze and ExitPoll steps in one objective.
+- **Session Replay** shows zones as labelled volumes and each visit as a bar on the timeline.
+- **Analyze**, on the Zones tab, counts gaze, head position or custom events inside any shape across sessions already recorded, so an area can be explored and its boundary refined before a zone is saved.
+- **Queries.** Visits are the `spaceVisit` entity in slicer queries and the `spaceVisits` array on the session document, with zone id, start and end time and duration per visit.
+
+What a zone does not record, so an event still earns its place:
+
+- **Order and direction inside the zone.** A zone knows entered, left and how long, not whether the person reversed along their own path, circled, or which way they faced. Backtracking, path efficiency and "went the wrong way" stay as events or as analysis over the position stream.
+- **What they did there.** Grasps, tool use, UI choices and errors inside a zone are still events; the zone gives them a place.
+- **History.** A zone counts visits only in sessions recorded after it is saved, and the zones table shows a "Collecting since" date per zone. Analyze answers the historical question, with limits: it cannot yet count saved zones that contain circles or rotated rectangles, and it reads at most the first 65,536 sessions for gaze and head position and the first 10,000 for events.
+
+Planning rules:
+
+- Put zones in the plan as their own table next to dynamic objects: zone name, scene or scenes, shape, visit type, the question it answers, and the report or objective that reads it. The template has the table.
+- **Draw and save zones before the validation sessions run.** This is the one operational gotcha. A zone saved after the first real sessions has no data for them, and a zone objective evaluates only from its zone's save date.
+- Saved zones are frozen. Name and description can change; shapes cannot. To move a boundary, duplicate the shape, edit the copy and delete the old zone, and expect the "Collecting since" clock to restart.
+- Organization Admins and Project Admins create and delete zones; Observers can view them. A zone that an objective uses cannot be deleted until the objective step is removed. Name in the plan who will draw them.
+- Scenes generated by a pipeline multiply the work: a zone's shapes live on a scene, so forty generated layouts need forty sets of shapes, and today each is a dashboard task. Scope zones on such projects to the few that answer the top question.
+
+**Creating zones programmatically: not yet available.** Zones are drawn on the dashboard today. The Cognitive3D MCP server has no zone tools, and its `create_objective` cannot add a zone step. Zone creation through the MCP is planned; when it ships, this section will carry the tool names, the shape and zone contract, and the rule for generated scenes. Until then, treat zone drawing as a dashboard task in the plan, scheduled before validation.
+
 ---
 
 ## Universal baseline instrumentation
@@ -133,7 +170,7 @@ Recommended pattern: `ftue_started`, `ftue_stage_started`, `ftue_stage_completed
 
 Suggested properties: `stage_name`, `stage_order`, `duration_seconds`, `help_used`, `input_mode`
 
-### 3. Key dynamic objects
+### 3. Key dynamic objects and zones
 
 Add dynamic objects only where object-level attention or interaction answers a question. Good candidates: equipment, tools, instruction surfaces, targets, prototypes, guide objects, objects used in objectives. Do not track everything — spawned objects like bullets pollute the object list.
 
@@ -144,6 +181,10 @@ Add dynamic objects only where object-level attention or interaction answers a q
 **Objects spawned at runtime** need an identity strategy: Unity and Unreal use ID Pools (Unreal's is an Id Pool Asset that must be sized to the concurrent spawn count); visionOS, Android XR and WebXR register each instance explicitly at spawn time. Route the mechanics to the SDK reference.
 
 > **Field note:** See `field_notes.md` → _Dynamic objects: quality over quantity_ for more.
+
+Zones are the place-shaped counterpart. Wherever a top question is about where someone was, how long they stayed there, or which area they looked at, add a zone rather than an area event: the platform computes the visits from data it already has, and the zone can be redrawn without a build. List them in the plan's zone table, draw them before the validation sessions, and keep events only for what the zone cannot see (direction, backtracking, what happened inside). See [Zone or event?](#zone-or-event).
+
+> **Field note:** See `field_notes.md` → _Zones replace place events, and the save date is the clock_ for more.
 
 ### 4. Session context
 
@@ -397,7 +438,9 @@ Use this table when translating discovery answers into tracking recommendations.
 | Which step causes learners to fail? | Step start, completion, skipped, incorrect action events | Supports sequential objectives and duration analysis |
 | Which content gets completed, repeated, or abandoned? | Content start/end, pause, bookmark, repeat count | Content-level cohort analysis and replay |
 | Which objects attract attention but not action? | Dynamic objects plus events | Replay connects gaze to outcomes |
-| Are users getting lost? | Portal/waypoint events, dynamic objects, movement context | Compare pathing, attention, progression blockers |
+| Are users getting lost? | Zones on waypoints and decision points, dynamic objects, and events only for what a zone cannot see (direction, backtracking) | Zone visits give reach, order and dwell per area with no build; events cover the rest |
+| How long do people spend at each station, and which do they visit first? | A zone per station, read through the Zones report | Visits, dwell and first zone entered are computed by the platform; nothing to ship |
+| Did the trainee reach the right place and stay long enough? | Zone objective with an occurrence count and a minimum dwell | Location becomes pass or fail without a custom event |
 | Which mechanic is actually being used? | Mechanic-specific events with properties | Usage frequency and adoption measurable |
 | Which settings affect success? | Session properties for movement, device, input, plus outcomes | Segmented comparison without event explosion |
 | Which prototype or item wins? | Interaction start/end, rating, interaction order, cohort tags | Comparative evaluation and study analysis |
@@ -485,3 +528,7 @@ Per-key events from a login keyboard leak password length and typing rhythm even
 ### 21. Restating the event name as a property
 
 `completed = true` on `step_completed`, `state = ended` on `module_ended`, or a `source` property naming the function that fired the event. The event name is the statement. Properties carry what the name does not say.
+
+### 22. Place events where a zone would do
+
+Emitting `area_entered`, `doorway_passed` or dwell events for regions of the scene, or sending the scene's area and furniture inventory as events at session start. Zones record entry, exit and dwell for any drawn area from data the platform already has, and can be redrawn without a build; the scene upload and the dynamic object manifest already describe the layout. Keep events for what a zone cannot see: direction, backtracking, and what happened inside.
