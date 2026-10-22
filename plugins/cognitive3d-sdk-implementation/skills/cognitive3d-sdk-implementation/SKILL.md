@@ -100,7 +100,7 @@ Do not recommend every available feature by default. A good plan answers the dev
 
 ### 7. Properties over event-name proliferation
 
-Do not create separate events for every variation. Use one event plus properties when that answers the question better. Use explicit units in property names — at minimum, durations should use `_seconds`.
+Do not create separate events for every variation. Use one event plus properties when that answers the question better. Use explicit units in property names — at minimum, durations should use `_seconds`. Properties have a budget too: each one has to earn its slot, and anything the platform already records (scene, time, device, app version, session length) never goes in it. See "Property hygiene" in `references/data_strategy.md`.
 
 ### 8. Verify live docs when freshness matters
 
@@ -501,6 +501,10 @@ Every plan should end with a validation plan confirming:
 - Controller and boundary tracking active, where the platform has them: mark both not applicable on visionOS, which has neither controllers nor a boundary concept. Allow for the WebXR prerequisite that room-size data needs a `bounded-floor` session, and for Unreal's requirement that the corresponding built-in components are present
 - Any built-in components the plan depends on are actually added (Unreal)
 - Numeric properties arrive as numbers rather than strings (Unreal Blueprint events are the usual culprit)
+- Property audit passed: pull one session's event payloads and, for each event name, list its properties. Drop or justify any property with one value across every session, any noun with more than one label or more than one ID, any value that is an engine path, class or function name, and any field the platform records on its own (scene, timestamp, session length). Confirm ordinals run gap-free from 1 on a complete run. With an MCP server connected, `get_field_values` on each custom property is the fastest way to spot a constant column
+- No event fires from a credential-entry screen, and nothing fires per keystroke
+- Objectives validated against one session where a person knows the ground truth (a deliberate wrong action should fail the mistake-free objective; if every session passes or none do, the condition is wrong)
+- Step labels, types and configured counts read through against what each step actually is; they are immutable once recorded
 - No event exceeds the property cap where one applies (Android XR allows ten)
 - Gaze-derived findings are described as what the platform actually measured (head direction on visionOS, not eye attention)
 - Offline/delayed upload behavior works (if needed and supported on this SDK)
@@ -516,7 +520,7 @@ Add the SDK-specific validation items from the relevant reference file. The Unre
 
 If the SDK is already partially integrated, do not start from scratch. Instead:
 
-1. **Audit the existing instrumentation** against the universal baseline in `references/data_strategy.md`. Which of the 12 baseline items are already in place? Which are missing?
+1. **Audit the existing instrumentation** against the universal baseline in `references/data_strategy.md`. Which of the 12 baseline items are already in place? Which are missing? Audit payloads, not the event-name list: pull one raw session's events and map properties per event name before judging coverage. A name list undersells what is there (properties often already cover the gaps the names suggest) and hides what is wrong (a shared context bag, four identities for one noun, constant-valued fields). Never propose new events from the name list alone. See field note: _Audit the payloads, not the event list_.
 2. **Map the execution architecture.** Before recommending where to add analytics, understand how existing code actually gets executed. Analytics must be placed on paths that are live at runtime.
    - *Unity*: projects often have multiple execution paths (MonoBehaviour callbacks, custom event systems, visual scripting, timelines, coroutine sequencers). Search the scene file by script GUID to confirm which scripts are attached to GameObjects. Code existence does not imply scene presence — Unity projects have a dual nature: code (readable from files) and scene state (configured in the Editor, only partially readable from YAML). Confirm with the developer which scripts are active in the scene.
    - *Unreal*: confirm which level actually contains `BP_Cognitive3DActor`, since its presence is what makes a session record at all. Then check whether instrumentation lives in Blueprint graphs, C++ classes, or both, and whether the graphs carrying it are reachable at runtime. A Blueprint node sitting in an unreferenced graph is the Unreal form of a script attached to nothing. Audit the Blueprint-versus-C++ split for custom events specifically: Blueprint-sent properties arrive as strings, so an integration can look complete and still be unqueryable for anything numeric.
@@ -608,6 +612,10 @@ A strong recommendation should be:
 20. Designing Android XR events past the documented ten-property limit; the SDK does not enforce it, so nothing warns you
 21. Describing visionOS gaze data as eye attention, or carrying a fixation-based recommendation onto Vision Pro unchanged
 22. Routing a Vision Pro project to the wrong reference by assuming the device implies the toolchain
+23. Shipping the same context bag on every event, so a lobby click carries step and attempt fields that mean nothing there
+24. Sending several identities for one noun (display name, short key, asset name, asset path) when one label and at most one linking ID is enough
+25. Emitting events from credential entry, or per keystroke anywhere; key presses reveal password length and typing rhythm even without the key value
+26. Restating the event name as a property (`completed = true` on `step_completed`), or sending values the platform already records (scene, timestamp, session length)
 
 ---
 
@@ -621,11 +629,15 @@ See **Step 3** in the core workflow. The progress tracker is a required gate —
 
 These are SDK-neutral and should be identical across every build a team ships.
 
-- Use stable event names: `module_started`, `step_completed`, `content_bookmarked`
+- Use stable snake_case event names: `module_started`, `step_completed`, `content_bookmarked`
+- No app or vendor prefix on event names. Dotted `app.noun.verb` names mimic the SDK's own `c3d.*` events; if several apps report into one project, tell them apart with a session property, not a prefix
+- Identical names across every build and sibling app a team ships
 - Put variation in properties, not event names
 - Use `_seconds` for time fields, consider `_percent`, `_count`, `_meters`
-- Use both stable IDs and readable labels when names can change
-- Record recurrence and order when sequence matters (`attempt_count`, `interaction_order`)
+- Per noun, one readable label plus at most one ID, and the ID only where records must link (attempt, step, tracked object). A third identity is noise
+- Nothing the platform already records (scene, timestamp, session length, device, engine, app version), nothing constant across every session, no engine paths, class names or firing-function names, and no property that restates the event name
+- One field for how something ended: `outcome`. Enum values lower-case
+- Ordinals are 1-based: `_number` for a position in a fixed sequence (`step_number`, `attempt_number`), `_order` for the order a person did things (`interaction_order`). Never `_index`, never 0-based. State every counter's scope (per session, per attempt, per participant)
 - Match the app's domain language (games use `mission`, training uses `module`, research uses `trial`)
 
 ---

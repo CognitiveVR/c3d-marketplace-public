@@ -213,13 +213,17 @@ Consistency matters more than cleverness.
 
 ### Event naming
 
-Use stable event names that describe what happened.
+Use stable snake_case event names that describe what happened.
 
 Good: `module_started`, `step_completed`, `mission_ended`, `content_bookmarked`, `prototype_rating_submitted`
 
 Bad: `module_completed_easy_path_controller_user_02`, `menu_trackbrowser_clicked_round3`, `prototype1_q1_rating5`
 
 The bad versions bury analyzable information inside the event name.
+
+**No app or vendor prefix.** `acme.step.completed` is wrong twice: the dotted style mimics the SDK's own built-in events (`c3d.sessionEnd`, `c3d.SceneChange`), so a reader cannot tell app events from platform events, and the prefix hard-codes the app into every name. If several apps report into one project, tell them apart with a session property (`app_name`), never with the event name. Variation goes in properties; the app is a variation.
+
+**Identical across sibling apps.** When a team ships more than one app or build, the same thing has the same name in every one of them. A dashboard built on `step_completed` has to work for all of them without a mapping table.
 
 ### Use properties for variation
 
@@ -238,15 +242,19 @@ Good: `duration_seconds`, `time_to_complete_seconds`, `pause_duration_seconds`
 
 Also consider: `_percent`, `_count`, `_meters`, `_bpm`
 
-### Prefer stable IDs plus readable labels
+### One label, one ID, nothing else
 
-If names can change over time, use both an id and a label.
+Each noun (module, step, tool, menu, order) gets one readable label, and one ID only where records must link: an attempt ID that joins every event in an attempt, a step ID that an objective matches on, a tracked-object ID that joins to a dynamic object. The label is what the dashboard shows; the ID exists to join. A third identity is noise.
 
-Example: `content_id = course_023`, `content_name = Evening Reset`
+Example: `step_name = Close the inlet valve`, `step_id = pump_inspection_050`. Not also `step_index`, `step_visit_id`, `step_asset_name` and `step_asset_path`.
+
+If the label can change over time and nothing downstream joins on the noun, the label alone is enough. Before dropping an identity, check that the ones you keep are 1-to-1 with it across the whole content catalogue, not just the sessions seen so far: an asset name that also encodes a variant (`PumpInspection_LargeUnitStory`) carries information the display label may not.
 
 ### Record recurrence and order when sequence matters
 
-Examples: `attempt_count`, `repeat_count`, `interaction_order`, `step_order`, `visit_number`
+Ordinals are 1-based and named for what they count. Use `_number` for a position in a fixed sequence (`step_number`, `attempt_number`, `visit_number`) and `_order` for the order in which a person did things (`interaction_order`, `trial_order`). Never `_index`, never 0-based: a 0-based `step_index` next to a 1-based `step_count` reads as an off-by-one on every dashboard.
+
+Every counter states its scope. `attempt_number` that resets each session means "nth attempt of this module in this session"; a trainee's nth attempt ever is a different field and usually comes from the participant view, not the app. Write the scope into the plan so the implementer and the analyst agree.
 
 ### Use booleans and enums carefully
 
@@ -260,7 +268,24 @@ Avoid overloading booleans for things that really have many states.
 
 Games may use `mission`, `chapter`, or `quest`. Training may use `module`, `procedure`, or `step`. Content apps may use `class`, `track`, `course`. Research may use `trial`, `block`, `stimulus`.
 
-Use the developer's domain language, but keep the logic clean.
+Use the developer's domain language, but keep the logic clean. One word per level: if the code says `story`, `scenario` and `module` for the same thing, the events say one of them.
+
+### Property hygiene
+
+Properties have a budget even where the SDK sets no cap. Each one must earn its slot, and the test for each is mechanical. Run these over a real session's payloads before sign-off (see the validation step in `SKILL.md`):
+
+- **If a property has one value across every session, drop it.** `attempt_scope = story`, `is_forward = true`, `controller_name = MotionController` on every event are not data. Keep it only if the other value is possible and matters.
+- **If the platform records it, do not send it.** Scene, timestamp, session length, device, engine, app version and participant identity are captured without instrumentation (`queryable_data.md`). A `scene_id` or `recorded_at` property duplicates a free field and spends the reader's attention.
+- **If it is an engine path, class name or function name, it is not a label.** `/Game/Maintenance/Data/TRN_PumpInspection_DA.TRN_PumpInspection_DA`, `BP_PumpHousing_C`, `OnStepCompleted` describe the code, not what happened. Send the display string the app's own UI shows.
+- **If it restates the event name, drop it.** `completed = true` on `step_completed`, `state = ended` on `module_ended`. The event is the statement.
+- **One field says how something ended, and it is `outcome`.** Values are lower-case enums: `completed`, `abandoned`, `failed`. Not `reason`, `state`, `source` and `result` on different events for the same meaning. Menus keep `close_reason`, because a menu closing is not an outcome.
+- **Enum values are lower-case** (`tutorial`, not `TutorialMode`), and a mode has one field (`mode`), not `mode` and `mode_id`.
+- **Context properties apply where they mean something.** Attempt and module fields ride on events inside a module attempt and on nothing else. A lobby click with `module_name` set to the lobby scene name is a context bag, not context. The usual cause is one shared serializer that every event calls; curate per event instead.
+- **Counts go on the event that summarises.** `step_count`, `completed_step_count` and `skipped_step_count` belong on `module_ended`, not on every step event.
+
+### Session end is synthetic when the SDK never sent one
+
+If an app is closed from the headset without a clean shutdown, the SDK never sends its end event. The platform then synthesises a `c3d.sessionEnd` at the last head-position sample, with the session length measured to that point; the dashboard shows it as "Application stopped sending data". A late upload of cached data can then add a second, real end event after the session was already processed. On any app where users remove the headset or kill the app to finish, session length and `c3d.sessionEnd` are not a completion measure. Build completion on the app's own lifecycle event (`module_ended` with `outcome`), and treat the synthetic end as a data-quality signal rather than a behaviour.
 
 ---
 
@@ -326,7 +351,9 @@ Useful events: `content_selected`, `content_started/ended`, `content_bookmarked`
 
 Useful patterns: `ui_opened`, `ui_closed`, `ui_selected`, `tool_activated`, `tool_closed`
 
-Useful properties: `ui_name`, `selected_item`, `duration_seconds`, `context_surface`
+Useful properties: `ui_name`, `selected_item_name`, `selection_type`, `interaction_order`, `close_reason`, `selection_count`, `duration_seconds`, `location`
+
+Two patterns worth copying for menus. `ui_closed.duration_seconds` (menu opened to menu closed) is time to decide, which is the usual question about a selector. And a menu that is still open when the session ends gets a `ui_closed` with `close_reason = session_ended`, so the open and close counts match and abandonment is visible. Instrument key interfaces only; a tutorial close button or a leaderboard filter rarely answers a question. Each `ui_selected` carries only what was picked and where in the sequence; the final choice and the summary counts go on `ui_closed`.
 
 ### Recurring versus one-time behavior
 
@@ -355,6 +382,8 @@ Unity and Unreal both support remote controls; visionOS, Android XR and WebXR do
 ### Privacy-sensitive capture
 
 Use special care with: audio, voice, transcripts, biometrics, open-text, demographics. Only recommend when it answers a real decision. Collect minimum needed. Make consent explicit. Prefer category-level metadata before full-content capture.
+
+**Never emit events from credential entry, and never per keystroke anywhere.** A login keyboard that fires an event per key press reveals password length and typing rhythm even when no key value is sent. Participant identity is still set at login (that is a participant property, not UI tracking), but the login screen itself gets no UI events. Note that a session which starts in the login scene still records head and gaze data there; if the screen must be untracked entirely, start the session on the first scene after login.
 
 ---
 
@@ -440,3 +469,19 @@ Android XR's docs limit custom events to ten key-value pairs. The SDK does not e
 ### 17. Sending numbers as strings
 
 A numeric property that arrives as text cannot be averaged, charted, bucketed or filtered numerically, and nothing on the dashboard flags it. One path does this by design: Unreal's one-node Blueprint *Send Custom Event* stringifies every value, while the *Make Custom Event* plus *Set Float/Integer/Bool Property* nodes and the C++ `FJsonObject` variant keep types. Everywhere else the property map is typed and the risk is the developer: visionOS's docs example shows only a string property although the API is `[String: Any]`, and copying the example turns a duration into text. Check the authoring surface before assuming a numeric plan row will be queryable.
+
+### 18. Shipping the same context bag on every event
+
+One shared serializer that attaches attempt, module, mode, step, scene and timestamp to every event produces lobby clicks with step fields and login events with module fields. Nothing in it is wrong on the event that owns it; everything in it is noise on the events that do not. Curate properties per event, and let context properties apply only where they mean something.
+
+### 19. Several identities for one noun
+
+A module that arrives as `module_name`, `module_id`, `story_name` and `story_id`, all 1-to-1, is one noun sent four ways. Engine asset names and paths are the usual extras. Send one readable label and, only where records must link, one ID.
+
+### 20. Events from credential entry, or per keystroke
+
+Per-key events from a login keyboard leak password length and typing rhythm even with no key value attached, and tell the analyst nothing. No events from credential screens; no per-keystroke events anywhere.
+
+### 21. Restating the event name as a property
+
+`completed = true` on `step_completed`, `state = ended` on `module_ended`, or a `source` property naming the function that fired the event. The event name is the statement. Properties carry what the name does not say.

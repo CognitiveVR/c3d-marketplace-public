@@ -248,3 +248,153 @@ Remote controls are a Phase 3 recommendation for most projects, but they are wor
 **Remote controls have no page in the visionOS, Android XR or WebXR docs.** Verify current support before promising them to a team on any of those. In the meantime the experiment still works: a browser or native app almost always has its own config endpoint, remote config service or feature-flag system, so let that assign the condition and record the assigned value as a session property. What matters analytically is that the condition is recoverable per session, not which system handed it out.
 
 **Recommendation:** If the team mentions A/B testing, live tuning, or balance iteration, flag remote controls early even if implementation is deferred to Phase 3. On visionOS, Android XR, WebXR and C++, flag the recording requirement instead.
+
+---
+
+## Engineering telemetry versus readable events
+
+**Applies to:** all projects; most often seen on Unreal, where asset names and paths are one getter away
+
+The first step-based training app reviewed against this skill after instrumentation shipped engineering telemetry: every event carried the same dozen-plus-property context bag, each noun arrived under three or four identities, engine paths and the firing function's name sat in property values, and fields the platform already records were duplicated. None of it was wrong in the sense of being false. All of it was unreadable to the client the dashboard was for.
+
+The identity problem, anonymised. Every module mapped 1-to-1 across all four fields in every session:
+
+| `module_name` (keep) | `module_id` | `story_name` | `story_id` |
+| --- | --- | --- | --- |
+| Pump Inspection | `PumpInspection` | `TRN_PumpInspectionStory_DA` | `/Game/Maintenance/Data/TRN_PumpInspectionStory_DA.TRN_PumpInspectionStory_DA` |
+| Valve Replacement | `ValveReplacement` | `TRN_ValveReplacementStory_DA` | `/Game/Maintenance/Data/TRN_ValveReplacementStory_DA.TRN_ValveReplacementStory_DA` |
+| Filter Change | `FilterChange` | `TRN_FilterChangeStory_DA` | `/Game/Maintenance/Data/TRN_FilterChangeStory_DA.TRN_FilterChangeStory_DA` |
+
+`story_name` and `story_id` were the Data Asset's name and path, automatic from the codebase. `module_name` was the app's own menu text. Only the last one means anything to a reader, and nothing downstream joined on the others. The same shape repeated for mode (`mode` and `mode_id`), for the clicked menu item (four properties for one button), for the menu itself (three), and for "why it happened" (`reason`, `source`, `state` and `close_reason` on different events). A `completed = true` property rode on `step_completed`. `scene_id` and `recorded_at` duplicated platform fields on every event. Five properties had one value across every session.
+
+The privacy finding from the same review: two thirds of the UI events were individual key presses on the login keyboard. No key value was sent, but per-keystroke events still reveal password length and typing rhythm, and the events answered no question.
+
+The cause was structural, not carelessness: one Blueprint function built the property map and every event called it, and the identities were whatever getters were nearest. The fix was a per-event property table with a keep/drop/rename decision per row, which is now the property audit in the validation step.
+
+**Recommendation:** Before sign-off, pull one real session's payloads and run the property hygiene tests in `data_strategy.md` over every event: constant columns, duplicate identities, platform-field duplicates, engine names as values, event-name restatements. On Unreal, write down per noun which getter the label comes from before instrumenting. Never emit events from a credential screen.
+
+---
+
+## Objectives for step-based modules: match on IDs, prove completeness with the ordinal
+
+**Applies to:** procedural assessment, any step-configured experience
+
+Building module-completion objectives on a step-based app surfaced a set of rules that are easy to get wrong and expensive to fix after the fact.
+
+- **Match steps on the stable `step_id`, never on `step_number`.** If the content team inserts a step later, ID matches stay correct; ordinal matches silently shift and every objective built on them is wrong from that build on.
+- **Use the ordinal to prove the run was complete.** A gap-free `step_number` 1 to N on one complete run is the evidence that the step list is whole. Gaps in the numbers embedded in step IDs (`step_070` after `step_050`) are authoring names, not missing steps.
+- **Do not sort by ID.** Authoring IDs sort wrongly (`09`, `09Bump`, `09Sticker` in run order is 10, 11, 12 by number). List conditions in `step_number` order and label each one `<step_number>. <step_id>` so the step list reads in run order on the dashboard.
+- **One objective per readable module name**, with `module_started`, one `step_completed` per step, then `module_ended` with `outcome = completed`. Variants that are separate modules (flavours, product lines) are separate objectives, so they can be compared.
+- **Objective names allow only letters, numbers, spaces and `- ' " . , &`.** The condition still uses the exact `module_name` value.
+- **Negative-occurrence conditions are free discriminators.** "Mistake-free" is `module_ended` with `outcome = completed` at least once and `incorrect_action` at most 0, not sequential. "Hint-free" is the same shape on `assistance_used`. Validate on a session someone remembers: one with a deliberate wrong action should fail, and if every session passes or none do the condition is wrong.
+- **Filter whole sessions with the global filter.** A general objective ("retried a module") filtered by `module_name` on the dashboard selects whole sessions, so a session with two modules counts for both.
+- **Counts are not objectives.** Modules completed per session is an Analysis-tool count of `module_ended` with `outcome = completed` grouped by `module_name`, not a pass/fail objective.
+
+**Recommendation:** Add "objectives match on stable IDs; ordinal is gap-free on a complete run" to the validation checklist for any step-based plan, and create objectives only after one complete run per module exists in the data.
+
+---
+
+## Duration is not automatic on custom events
+
+**Applies to:** all projects; **SDKs:** all
+
+Only the stateful custom-event object adds a duration, and only three SDKs have one. The plain "name plus properties" send adds nothing anywhere. Verified in source, Oct 2026:
+
+| SDK | Plain send adds duration | Stateful object | What it adds |
+| --- | --- | --- | --- |
+| Unreal | no | `UCustomEvent` (`Make Custom Event` node or `NewObject`) | `duration`, float seconds, always, no threshold |
+| Unity | no | `CustomEvent` | `duration`, float seconds, only when over 0.011 s |
+| visionOS | no | `CustomEvent` | `duration`, seconds, only when over 0.01 s |
+| WebXR | no | none | nothing |
+| Android XR | no | none | nothing |
+| C++ | no | none | nothing |
+
+Three consequences. A plan that says "duration is automatic" is wrong for half the targets and wrong for the common send path on the other half. The automatic property is spelled `duration`, lower-case, with no unit suffix, so it will not match a `duration_seconds` convention; if the plan standardises on `duration_seconds`, measure it in the app and send it explicitly on every SDK. And the object must be created when the thing starts, not when it ends, or the measured duration is near zero.
+
+**Recommendation:** Treat duration as an explicit `duration_seconds` property the app measures, on every SDK. Mention the stateful object only when the team is already using it, and then say which property name it produces.
+
+---
+
+## Audit the payloads, not the event list
+
+**Applies to:** all brownfield projects
+
+An event-name list dramatically undersells instrumentation quality. On a watch deconstruction and reconstruction demo, the name list (`step_started`, `step_completed`, `tool_grabbed`, `hint_requested`, `experience_*`) suggested obvious gaps: no phase markers, no error events, no hint context. The initial recommendation drafted from names alone proposed four new custom events, all of which would have needed developer time.
+
+Pulling the raw payload for one known-good session (`POST /v0/projects/:id/sessions/:sessionId/jsonRequests` with `jsonType: EVENTS`) and mapping properties per event name showed every one of those "gaps" was already covered by properties: `step_phase` (phase markers), `is_expected_tool` on `tool_grabbed` (error behaviour), `hint_number_in_step` and `seconds_into_step` on `hint_requested` (hint context), and full summary properties on `experience_ended`.
+
+The same audit catches the opposite failure: a name list that looks complete while the payloads carry one context bag on every event and four identities per noun (see _Engineering telemetry versus readable events_).
+
+**Recommendation:** In a brownfield audit, never propose new custom events from the event-name list alone. Fetch one raw session's events, build a property map per event name, and only then identify true gaps. A ten-minute payload audit can cancel an entire dev cycle of redundant instrumentation.
+
+---
+
+## Getting at custom property names and values
+
+**Applies to:** all projects analysed through the MCP server or the public API
+
+A property audit needs custom property names and their values, not just event counts. Current MCP server builds return them: `list_slicer_fields` enumerates a project's custom session and event properties by type, and `get_field_values` returns the distinct values of one, which is the fastest way to spot a constant column. Earlier builds could not, so if the connected server returns only `c3d.*` fields, the public API covers the gap with two calls: `POST /v0/datasets/sessions/slicerPropertyNameQueries` (every custom property by type) and the `jsonRequests` endpoint above (full payloads).
+
+For API credentials, have the client drop an org key into a `curlrc`-style file (`header = "Authorization: orgkey-..."`) and run everything through `curl --config`, so the key never appears in commands or output.
+
+**Recommendation:** The moment a workflow needs custom property names or values, go straight to `list_slicer_fields` and `get_field_values`, or to the two API calls if the server lacks them. Do not reason about properties from event names.
+
+---
+
+## One generic step event plus properties powers every objective you need
+
+**Applies to:** procedural assessment, exploration and evaluation
+
+A strong reference for the "properties over event-name proliferation" rule: a single `step_completed` event carrying `step_number`, `step_phase`, `step_type`, `duration_seconds`, `hint_count` and `completion_source` supported three very different objectives with no new instrumentation:
+
+- a **phase funnel** (property condition `step_phase eq intro/disassembly/reassembly` on successive steps),
+- a **per-step reconstruction funnel** (ten sequential steps, each matched on its step ID) that immediately flags the exact piece users stall on,
+- combined with occurrence logic, a **"did NOT do X" discriminator**: a non-sequential objective with `experience_ended at_least 1` AND `hint_requested equals 0` cleanly separates hint-free completions.
+
+Note on typing: the platform stores numeric property-condition values as strings (`'15'`) but matches them against float event values (`15.0`) correctly, verified per session. Do not let the stored representation alarm you.
+
+**Recommendation:** When designing objectives for step-based experiences, reach for property conditions on the generic step event before asking for any new events. Remember negative-occurrence steps (`equals 0`): "completed without help or error" objectives are high-value and free.
+
+---
+
+## Objectives retro-score existing sessions: create them late, validate against ground truth
+
+**Applies to:** all projects
+
+Objectives re-evaluate roughly 30 days of past sessions on creation, asynchronously (a few dozen sessions scored within about twenty minutes). Objectives are therefore not a "should have set this up before collecting data" feature: they can be designed after the fact, against data already audited.
+
+Retro-scoring also enables a validation pattern: score a session where a human knows the ground truth. On one project the client had personally run a session in which she reset once and requested exactly one hint. After creation, `GET /v0/versions/:versionId/sessions/:sessionId/objectiveData` showed that session passing all reconstruction steps, passing "Needed a Hint", and correctly *failing* "Hint-Free Master" at the hints-equals-zero step: every discriminator behaving as designed.
+
+**Recommendation:** Add "validate objectives against a ground-truth session" to the validation checklist whenever objectives are created on existing data. One session someone remembers beats a hundred you have to infer.
+
+---
+
+## Restarts do not start new sessions: record run_number and a reset snapshot
+
+**Applies to:** procedural assessment, session-based content loops, any restartable experience
+
+An in-app restart keeps the same session. Two patterns worth copying: every gameplay event carries a `run_number` property (the same idea as `attempt_number` on module attempts), so run 1 (abandoned at step 11 via reset) and run 2 (completed) are cleanly separable inside one session. And the `experience_reset` event carries an at-reset snapshot: `step_number_at_reset`, `step_label_at_reset`, `reset_source`, `progress_percent`, `total_hint_count`, everything needed to analyse abandonment without reconstructing state from the event stream.
+
+This also explains a common support moment: a user "can't find" an event they know they fired. It is usually in an earlier run of the same session, or in a neighbouring session. Pin down the exact session by start timestamp, then query the raw events in that window before concluding data was lost.
+
+**Recommendation:** For any restartable experience, recommend `run_number` (or `attempt_number`) on all gameplay events plus a reset event with an at-reset snapshot. Treat "missing event" reports as a session-identification problem first and a data-loss problem second.
+
+---
+
+## Dual-write summary values: event properties and session properties
+
+**Applies to:** all projects
+
+Writing the end-of-run summary (`outcome`, `progress_percent`, `total_hint_count`, `furthest_step_number`, duration) twice, as properties on the lifecycle-end event **and** as custom session properties, is deliberate and useful. Session properties make the values sliceable in session-level queries and dashboard filters; event properties keep them attached to the moment they became true and usable in objective property conditions, and per run when sessions contain multiple runs.
+
+**Recommendation:** Recommend the dual-write pattern for run summaries: session properties for slicing, mirrored event properties on the lifecycle-end event for objectives and per-run analysis. The cost is a few extra lines; the payoff is that both query surfaces work.
+
+---
+
+## Step metadata gets baked into recorded events: QA it during validation
+
+**Applies to:** procedural assessment, any step-configured experience
+
+Event properties are immutable once recorded. One project shipped two harmless-but-permanent metadata quirks: reassembly steps carried `step_type: "hint"` (disassembly used `interactive`, so a config mislabel), and reassembly `step_label` text reused the disassembly wording ("User removes the…" while the user is *re-attaching*). Neither blocked analytics, since `step_phase` and `step_number` carried the analysis, but every dashboard, replay and export shows the wrong labels forever for the sessions already collected. A config-count mismatch also surfaced (`total_steps_configured` = 28, runs complete at step 24), which matters if any objective threshold is derived from the configured total.
+
+**Recommendation:** Add a "read the step metadata out loud" pass to the validation checklist: labels, types and configured counts, checked against what a step actually is. Also flag quick ratio checks in the first audit (`step_started` versus `step_completed` counts, `sessionStart` versus experience-start events, any `app_crashed` volume) as instant data-quality smoke tests.

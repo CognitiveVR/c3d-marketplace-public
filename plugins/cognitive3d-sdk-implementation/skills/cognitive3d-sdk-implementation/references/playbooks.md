@@ -39,13 +39,15 @@ Common fits: training simulation, SOP walkthrough, onboarding with formal pass/f
 
 | Event family | When it fires | Core properties | Why it matters |
 | --- | --- | --- | --- |
-| `module_started` | module begins | module_id, module_name, module_type, attempt_count | top-level activity |
-| `module_ended` | module ends | module_id, duration_seconds, completion_status, score_percent | completion/outcome |
-| `step_started` | step begins | step_id, step_name, step_order | timing/sequence |
-| `step_completed` | step succeeds | step_id, step_name, step_order, duration_seconds, success_boolean | progress/friction |
-| `step_skipped` | step skipped | step_id, step_name, step_order, skip_reason | non-completion |
-| `incorrect_action` | critical mistake | error_type, step_name, severity | failure analysis |
-| `assistance_used` | help requested | step_name, help_type, count | supported vs unsupported success |
+| `module_started` | module begins | attempt_id, attempt_number, module_name, mode, step_count | top-level activity |
+| `module_ended` | module ends, on every end path | attempt_id, module_name, outcome, duration_seconds, completed_step_count, skipped_step_count, score_percent | completion/outcome |
+| `step_started` | step begins | step_id, step_name, step_number | timing/sequence |
+| `step_completed` | step succeeds | step_id, step_name, step_number, duration_seconds | progress/friction |
+| `step_skipped` | step skipped | step_id, step_name, step_number, skip_reason | non-completion |
+| `incorrect_action` | critical mistake | error_type, step_id, step_name, expected_object_name, severity | failure analysis |
+| `assistance_used` | help requested | step_id, step_name, help_type, assistance_count | supported vs unsupported success |
+
+Every event inside an attempt also carries `attempt_id` (and `attempt_number`, `module_name`, `mode` where the analysis slices on them); events outside an attempt carry none of those. Add `module_id` only when an LMS or portal keys on it; otherwise `module_name` is the one identity. Per noun, one label and at most one linking ID.
 
 ### Recommended dynamic objects
 
@@ -83,12 +85,17 @@ These are high-leverage observations from real integrations. See `field_notes.md
 - **Design completion objectives with LMS forwarding in mind.** If the team mentions LMS or xAPI, the module completion event and objective need score, attempt, and status metadata from day one. See field note: _LMS and objective forwarding_.
 - **Audio recording is high value but high sensitivity.** Only when verbal output is relevant to assessment. Always flag consent and governance. See field note: _Audio recording: high value, high sensitivity_.
 - **Track planned versus actual duration.** For timed modules, recording both expected and actual duration reveals partial completions. See field note: _Content duration: planned versus actual_.
+- **Readable events, not engineering telemetry.** The first review of a step-based app usually finds one context bag on every event, each noun under three or four identities, and engine paths as labels. See field note: _Engineering telemetry versus readable events_.
+- **Objectives match on step IDs, and the ordinal proves the run was complete.** See field note: _Objectives for step-based modules: match on IDs, prove completeness with the ordinal_.
 
 ### Common mistakes
 
 - Only tracking final completion, nothing step-level
 - Putting role or department on session instead of participant
 - Forgetting incorrect-action events
+- One shared property set on every event, so lobby and login events carry step and attempt fields
+- Several identities for one noun (display name, short key, asset name, asset path)
+- Events from the login keyboard, per key press
 - Dynamic objects on every prop instead of safety-critical objects
 - Recommending audio capture without explicit consent or governance
 
@@ -117,8 +124,8 @@ Common fits: games, narrative adventures, puzzle apps, progression-based interac
 | --- | --- | --- | --- |
 | `session_started` | run begins | mode, difficulty, variant, movement_style | play context |
 | `session_ended` | run ends | duration_seconds, outcome, score_value, chapter_reached | retention/completion |
-| `tutorial_step_started` | tutorial step starts | step_name, step_order | early friction |
-| `tutorial_step_completed` | tutorial step completes | step_name, step_order, duration_seconds | onboarding pacing |
+| `tutorial_step_started` | tutorial step starts | step_name, step_number | early friction |
+| `tutorial_step_completed` | tutorial step completes | step_name, step_number, duration_seconds | onboarding pacing |
 | `mission_started` | mission begins | mission_id, mission_name, difficulty | progression |
 | `mission_ended` | mission ends | mission_id, duration_seconds, is_completed, score_value | progression analysis |
 | mechanic-specific events | mechanic used | mechanic_name or stable action with weapon, spell, target, result | system adoption |
@@ -196,7 +203,7 @@ Common fits: fitness apps, meditation apps, music practice or instrument trainer
 | `content_bookmarked` | user saves | content_id, content_category | preference |
 | `content_selected` | user chooses | content_id, selection_surface, recommendation_source | browsing vs consumption |
 | FTUE stages | onboarding | content_mode, stage_name, duration_seconds | onboarding by content type |
-| `ui_opened` / `ui_closed` | tablets, watches, players opened | ui_name, duration_seconds, context_surface | friction and support-surface use |
+| `ui_opened` / `ui_closed` | tablets, watches, players opened | ui_name, duration_seconds, location, close_reason | friction and support-surface use |
 
 ### Recommended dynamic objects
 
@@ -345,7 +352,7 @@ Common fits: academic studies, UX experiments, repeated-measure protocols, pilot
 | `trial_started` | trial begins | trial_id, trial_order, stimulus_id, condition_id | unit of work |
 | `trial_ended` | trial ends | trial_id, response_correct, response_time_seconds | trial-level analysis |
 | `response_submitted` | participant responds | response_type, response_value, trial_id | explicit result |
-| `questionnaire_completed` | survey completed | instrument_id, completion_status | separates protocol from XR activity |
+| `questionnaire_completed` | survey completed | instrument_id, outcome | separates protocol from XR activity |
 | `protocol_exception` | protocol broken | exception_type, block_id or trial_id | data quality |
 
 ### Recommended dynamic objects

@@ -300,3 +300,74 @@ This plan makes it possible to:
 - keep local development traffic out of the dashboard from day one
 
 And it keeps the Unity showroom build comparable: `component_id`, `configuration_hash` and the event names are identical across both, so the two builds query as one series instead of two.
+
+---
+
+## Example 7: Step-based procedural training, after a property review
+
+This example shows the event and property table a step-based training module should end up with, and the shape it usually starts from when a developer instruments first and asks later. The domain here is equipment maintenance; the pattern is the same for any fixed-sequence procedure on any engine.
+
+### Project readback
+
+- The experience is a set of maintenance training modules (pump inspection, valve replacement, filter change), each a fixed sequence of steps, run in a tutorial mode on shared headsets.
+- The users are trainees; the dashboard is client-facing, so every name must read without explanation.
+- The team needs completion per module, time per step, mistakes, retries, and which module a trainee picked.
+- **Motion:** Performance and compliance
+- **Archetype:** Procedural assessment
+- **Overlays:** Shared device
+- **SDK:** an editor-based engine with asset names one getter away
+
+### What the first build sent
+
+A dozen events, each with the same large context bag. The module arrived four ways (display name, short key, asset name, asset path), the mode two ways, the clicked menu item four ways. Scene and timestamp duplicated platform fields. Several properties had one value across every session. A `completed = true` property rode on `step_completed`; a `source` property carried the firing function's name. Most UI events were login key presses. Event names were dotted and app-prefixed (`app.step.completed`), in three naming styles across the set.
+
+### Context properties
+
+| Property | Present on | Absent on |
+| --- | --- | --- |
+| `attempt_id`, `attempt_number` | every event inside a module attempt | lobby and login events |
+| `module_name`, `mode` | every event inside a module attempt | lobby and login events |
+
+`attempt_number` counts attempts of the same module within one session. Cross-session attempt counts come from the participant view once `participant_id` is set.
+
+### Event catalog, after review
+
+| Event | Fires when | Properties | Status |
+| --- | --- | --- | --- |
+| `module_started` | module reaches its first step | `step_count` (int) | Replaces: `app.story.started`, `app.scenario.started` |
+| `module_ended` | every end path: completed, abandoned via menu, app quit | `outcome` (`completed`, `abandoned`), `duration_seconds`, `completed_step_count`, `skipped_step_count` | Replaces: `app.story.ended` |
+| `step_started` | step becomes active | `step_id`, `step_name`, `step_number`, `target_object_id`, `target_object_name` | Replaces: `app.step.started` |
+| `step_completed` | step satisfied | `step_id`, `step_name`, `step_number`, `target_object_id`, `target_object_name`, `duration_seconds` | Replaces: `app.step.completed`, `app.step.ended` |
+| `step_skipped` | step skipped | same as `step_completed` plus `skip_reason` | Replaces: `app.step.skipped` |
+| `incorrect_action` | wrong object grabbed | `error_type` (`wrong_object`), `step_id`, `step_name`, `step_number`, `target_object_id`, `target_object_name`, `expected_object_name` | Replaces: `app.interaction.wrong_object` |
+| `object_grabbed` / `object_released` | tracked object handled | `step_id`, `step_name`, `step_number`, `target_object_id`, `target_object_name`, `hand` (`left`, `right`) | Keep |
+| `ui_opened` | module menu shown | `ui_name`, `location` | Amend |
+| `ui_selected` | option tapped | `ui_name`, `selected_item_name`, `selection_type`, `menu_page`, `interaction_order`, `seconds_since_menu_opened` | Amend |
+| `ui_closed` | menu closes, or session ends with it open | `ui_name`, `close_reason` (`confirmed`, `cancelled`, `session_ended`), `selection_count`, `duration_seconds`, `final_module_name`, `final_mode` | Amend |
+| login keyboard events | | | Retire |
+
+Break-risk decision: cut over. The project was pre-launch, so there was no historical series to split.
+
+### Labels and IDs
+
+| Noun | Label | ID | Source in the app |
+| --- | --- | --- | --- |
+| module | `module_name` ("Pump Inspection") | none; nothing joins on it | the module's menu text, not the asset name or path |
+| step | `step_name` ("Close the inlet valve") | `step_id` (`pump_inspection_050`) | step display string; step key from the step data |
+| tracked object | `target_object_name` ("Pump housing") | `target_object_id` | dynamic object display name and its ID, not the engine object name |
+| attempt | | `attempt_id` (GUID minted at `module_started`) | |
+
+### Objectives
+
+- One completion objective per module: `module_started` where `module_name` = the module, one `step_completed` per step matched on `step_id` and listed in `step_number` order, then `module_ended` with `outcome = completed`.
+- Retried a module: any `module_started` with `attempt_number` greater than 1.
+- Mistake-free session: at least one `module_ended` with `outcome = completed` and `incorrect_action` at most 0, not sequential.
+
+### Why this plan works
+
+- A reader sees "Pump Inspection", "Close the inlet valve", "Pump housing", not asset paths and class names.
+- One identity per noun, so no column is a duplicate of another.
+- Context properties appear only where they mean something, so lobby and login events are small and honest.
+- Time to decide on the module menu is `ui_closed.duration_seconds`; menus abandoned at session end still close.
+- Objectives survive content edits because they match on `step_id`; a gap-free `step_number` on one complete run proves each step list is whole.
+- Nothing was emitted from the login screen.
