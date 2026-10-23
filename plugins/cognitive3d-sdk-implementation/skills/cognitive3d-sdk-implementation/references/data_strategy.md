@@ -127,7 +127,7 @@ What a zone records:
 Where a zone surfaces:
 
 - The **Zones report** dashboard template: sessions visiting a zone, sessions by zone, zone map, zone heatmap, share of time by zone, time in zone, first zone entered, and visiting sessions over time. The same widgets go on custom dashboards from the Spatial category. The report reads head-position visits.
-- **Zone objectives.** A zone step names a zone, a visit type, an occurrence count and an optional minimum dwell per visit ("reach the safety area at least twice and stay 10 seconds each time"). Zone steps combine with event, gaze and ExitPoll steps in one objective.
+- **Zone objectives.** A zone step names a zone, a visit type, an occurrence count and an optional minimum dwell per visit ("reach the safety area at least twice and stay 10 seconds each time"). Zone steps combine with event, gaze and ExitPoll steps in one objective, and can be created on the dashboard or through the MCP server's `create_objective` (below).
 - **Session Replay** shows zones as labelled volumes and each visit as a bar on the timeline.
 - **Analyze**, on the Zones tab, counts gaze, head position or custom events inside any shape across sessions already recorded, so an area can be explored and its boundary refined before a zone is saved.
 - **Queries.** Visits are the `spaceVisit` entity in slicer queries and the `spaceVisits` array on the session document, with zone id, start and end time and duration per visit.
@@ -158,18 +158,20 @@ Read tools, in the default `analytics` toolset:
 
 Write tools, in the opt-in `write` toolset alongside objectives and ExitPoll, so they need an organization key with `CHANGE_SPACES_CONFIGURATION`:
 
-- `create_zone_from_shapes(project_id, name, shapes=[{scene_id, shape_type, name, x, y, z, width?, length?, height?, radius?, yaw_degrees?}], description?)` is the one to reach for. It validates every shape, creates the shapes and then the zone in one call, and removes anything it created if a step fails. Shapes may sit on different scenes.
-- `create_shape`, `create_zone(project_id, name, shape_ids)`, `update_zone` (name and description only; shapes are frozen once saved), `delete_shape` and `delete_zone` cover the rest.
+- `create_zone_from_shapes(project_id, name, shapes=[{scene_id, shape_type, name, x, y, z, width?, length?, height?, radius?, yaw_degrees?}], description?, publish?)` is the one to reach for. It validates every shape and creates them in one call, and removes anything it created if a step fails. **By default it creates a draft, not a zone**: the shapes land as one draft group named after the zone on the scene's Zones page, the reply links that page, and a person reviews the geometry and publishes it. Pass `publish=true` to create the zone immediately with no review; that is the scripted path, and the only path for a zone whose shapes sit on different scenes, because draft groups are per scene.
+- `create_zone(project_id, name, shape_ids)` publishes existing shapes as a zone. It is the MCP equivalent of the dashboard's Save changes, scoped to exactly those shapes. Prefer it over the dashboard button for publishing a reviewed draft: Save changes publishes every draft on that scene, including ones nobody meant to keep.
+- `create_shape` (one draft shape; `y` is required for BOX, SPHERE and CYLINDER and ignored by the infinitely tall types), `update_zone` (name and description only; shapes are frozen once saved), `delete_shape` and `delete_zone` cover the rest.
 - Every create and delete is a dry run until `confirm` is passed, and the dry run names any blocker before anything is written: a shape already in a zone, a zone an objective references, a key without the capability.
+- `create_objective` accepts a zone step: `{type: "zone", name, zone_id, occurrence, duration_seconds?, visit_type?}` with `visit_type` one of `hmd` (head position, the default), `gazed_in` or `gazed_through`. Existing zone steps read back through `get_project_objectives`. The zone must be published first; a draft has no id to point at.
 
 Shape contract: `shape_type` is `BOX` (width, height, length), `INF_TALL_BOX` (width, length), `SPHERE` (radius), `CYLINDER` (radius, height) or `INF_TALL_CYLINDER` (radius). Positions are metres, Y up, origin at the shape centre; the infinitely tall types sit on the floor and ignore `y`. Rotation is `yaw_degrees`; the tool builds the quaternion, so never write one by hand. The infinitely tall rectangle is what the dashboard's top-down editor draws, and is the right default for floor areas.
 
 Rules for using them in a plan:
 
-- The save-date rule is unchanged. A zone created through the MCP starts counting visits from the moment it is created, so create zones before the validation sessions run, in the same working session as the plan when the key allows writes.
+- The save-date rule is unchanged, and it is the publish that starts the clock. A draft records nothing; a zone counts visits from the moment it is published, whether by `publish=true`, `create_zone` or Save changes. So publish zones before the validation sessions run, in the same working session as the plan when the key allows writes, and check `list_zones` for drafts left unpublished.
 - For generated or pipeline-built scenes, keep the zone definitions next to the scene generator and create them per scene with `create_zone_from_shapes`. The plan's zone table is the input to that script.
 - Read before writing. `list_zones` first; a brownfield audit that finds area events should also find whether zones already cover the same places.
-- Zone objectives are still created on the dashboard: `create_objective` cannot add a zone step yet.
+- Zone objectives can be created in the same pass as the zones, with `create_objective` zone steps, once the zones are published. Validate them the same way as any objective: against one session where someone knows the ground truth.
 
 ---
 
