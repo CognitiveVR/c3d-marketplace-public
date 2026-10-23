@@ -149,7 +149,7 @@ Planning rules:
 
 #### Creating zones programmatically
 
-With a Cognitive3D MCP server connected, zones can be read and created without the dashboard.
+With a Cognitive3D MCP server connected, zones can be read and created without the dashboard. The zone tools ship in MCP server 1.10; on an older server `list_slicer_fields` still works but none of the tools below exist, so check the server version before planning on them.
 
 Read tools, in the default `analytics` toolset:
 
