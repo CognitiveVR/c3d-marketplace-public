@@ -200,6 +200,17 @@ List the objects that should become dynamic objects and why.
 
 Do not list every object in the scene. Only include decision-relevant objects.
 
+### Zones
+
+Zones are drawn on the dashboard or created through the MCP server, not in the app, and count visits only in sessions recorded after they are saved. List the places the plan needs to measure and who will create them, and schedule that before the validation sessions. See _Zone or event?_ in `data_strategy.md`.
+
+| Zone | Scene(s) | Shape | Visit type | Related question | Report or objective use |
+| --- | --- | --- | --- | --- | --- |
+| inspection_point | pump_room | 2 m circle at the gauge | head position | did they reach the gauge and stay? | zone objective: 1 visit, 10 s dwell |
+| product_display | showroom | rectangle over the display table | gazed in | which displays draw attention from across the room? | Zones report: share of time by zone |
+
+Keep events for what a zone cannot record: direction, backtracking, and what happened inside the zone.
+
 ## 8. Session properties
 
 | Property | Type | Example values | Why it belongs on the session |
@@ -226,6 +237,7 @@ List the first objectives or dashboard reads the team should create.
 | --- | --- | --- | --- |
 | FTUE completion | whether users complete onboarding | ftue events | reveals early drop-off |
 | module completion objective | whether required steps were completed | step events, objectives | supports assessment and reporting |
+| reach-and-dwell zone objective | whether users reached the inspection point and stayed | zones | location becomes pass or fail without a custom event |
 
 The goal is to name the first useful analysis surfaces, not just the raw data.
 
@@ -247,6 +259,7 @@ Suggested checklist:
 - session replay visible
 - key events appear with correct properties
 - dynamic objects show up and register gaze
+- zones drawn and saved before the validation sessions, each with a "Collecting since" date earlier than the first validation session
 - session properties appear as expected
 - participant properties appear as expected
 - controller and boundary tracking active, where the platform has them (neither exists on Apple Vision Pro)
