@@ -1,2 +1,9 @@
 ## Mac
 .DS_Store
+
+## Local-only files that must never land in this public repo
+# Planning-companion dev plans and their Quarto renders: they name clients and internal projects
+.claude/plans/
+.companion-state/
+# Git bundles saved as branch backups
+*.bundle
